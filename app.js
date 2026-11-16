@@ -496,10 +496,14 @@ svg.addEventListener("pointerdown", (evt) => {
   } else {
     geste = { type: "trace", depart: p, ecran: [evt.clientX, evt.clientY], bouge: false };
   }
-  svg.setPointerCapture(evt.pointerId);
+  try {
+    svg.setPointerCapture(evt.pointerId);
+  } catch {
+    // capture refusée : le relâchement est aussi écouté sur la fenêtre
+  }
 });
 
-svg.addEventListener("pointermove", (evt) => {
+window.addEventListener("pointermove", (evt) => {
   if (!geste) return;
   const p = versMm(evt);
   if (geste.type === "bord") {
@@ -522,7 +526,8 @@ svg.addEventListener("pointermove", (evt) => {
   dessiner();
 });
 
-svg.addEventListener("pointerup", (evt) => {
+// Le relâchement peut arriver hors du plan (souris sortie de la zone) : on l'écoute sur la fenêtre.
+window.addEventListener("pointerup", (evt) => {
   if (!geste) return;
   const g = geste;
   geste = null;
@@ -579,6 +584,10 @@ svg.addEventListener("wheel", (evt) => {
 }, { passive: false });
 
 window.addEventListener("resize", () => dessiner());
+window.addEventListener("pointercancel", () => {
+  geste = null;
+  tout();
+});
 
 document.addEventListener("keydown", (evt) => {
   if ($("#confirmer").open) return; // la fenêtre de confirmation gère ses propres touches
