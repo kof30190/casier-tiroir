@@ -4,12 +4,67 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Casier de tiroir</title>
+  <meta name="description" content="Dessinez les boîtes de votre tiroir, l'appli prépare leur impression 3D.">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <aside id="tiroir"></aside>
-  <main id="plan"></main>
-  <aside id="liste"></aside>
+  <header class="barre">
+    <h1>Casier de tiroir</h1>
+    <div class="actions">
+      <button id="annuler" title="Annuler (Ctrl+Z)">↶ Annuler</button>
+      <button id="retablir" title="Rétablir (Ctrl+Maj+Z)">↷ Rétablir</button>
+      <label class="bouton" title="Rouvrir un fichier téléchargé">Ouvrir…<input id="ouvrir" type="file" accept=".json,application/json" hidden></label>
+      <button id="vider" title="Retirer toutes les boîtes">Tout effacer</button>
+      <button id="valider" class="principal">Valider</button>
+    </div>
+  </header>
+
+  <aside class="panneau" id="panneau-tiroir">
+    <h2>Le tiroir</h2>
+    <form id="cotes" autocomplete="off">
+      <label>Largeur<span><input name="largeur" inputmode="decimal"> mm</span></label>
+      <label>Longueur<span><input name="longueur" inputmode="decimal"> mm</span></label>
+      <label>Hauteur<span><input name="hauteur" inputmode="decimal"> mm</span></label>
+      <label>Parois<span><input name="epaisseur" inputmode="decimal"> mm</span></label>
+      <label>Fond<span><input name="epaisseur_fond" inputmode="decimal"> mm</span></label>
+      <label>Jeu entre boîtes<span><input name="jeu" inputmode="decimal"> mm</span></label>
+      <label>Plateau d'impression<span><input name="plateau" inputmode="decimal"> mm</span></label>
+    </form>
+    <div id="messages" role="status" aria-live="polite"></div>
+    <div class="aide">
+      <h3>Comment faire</h3>
+      <ul>
+        <li><b>Glissez</b> sur une zone libre pour tracer une boîte.</li>
+        <li><b>Cliquez</b> une zone libre pour y poser une colonne ou une rangée.</li>
+        <li><b>Cliquez</b> une boîte pour la couper, la redimensionner ou la supprimer.</li>
+        <li><b>Double-cliquez</b> dans une boîte pour la couper à cet endroit (Maj : dans l'autre sens).</li>
+        <li>Molette : zoom. Les bords se collent tout seuls.</li>
+      </ul>
+    </div>
+  </aside>
+
+  <main id="zone-plan">
+    <svg id="plan" xmlns="http://www.w3.org/2000/svg" aria-label="Plan du tiroir vu de dessus"></svg>
+    <div class="legende"><span class="pastille boite"></span>Boîte <span class="pastille auto"></span>Ajoutée automatiquement <span class="trait"></span>Découpe d'impression</div>
+  </main>
+
+  <aside class="panneau" id="panneau-selection">
+    <section id="outil"></section>
+    <h2>Les boîtes <small id="resume"></small></h2>
+    <ol id="liste"></ol>
+  </aside>
+
+  <dialog id="confirmer">
+    <form method="dialog">
+      <h2>Valider le casier</h2>
+      <p id="confirmer-texte"></p>
+      <menu>
+        <button value="non">Revenir au plan</button>
+        <button value="oui" class="principal">Confirmer et télécharger</button>
+      </menu>
+    </form>
+  </dialog>
+
   <script type="module" src="app.js"></script>
 </body>
 </html>
