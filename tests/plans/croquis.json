@@ -1,0 +1,1423 @@
+{
+ "version": 1,
+ "consigne": "Ce fichier décrit un casier de tiroir fait de boîtes indépendantes, à imprimer en 3D une pièce à la fois.\nIl vient de l'appli « Casier de tiroir » ; tout est déjà calculé (jeu entre boîtes, découpes, tenons et fourches), il n'y a rien à recalculer.\nPour le construire avec SolidCraft (solidcraft-cli doit être installé) :\n1. Écrire la liste `script_solidcraft.commands` telle quelle dans un fichier script.json.\n2. Lancer `solidcraft-cli eval script.json` et comparer chaque corps à la liste `morceaux` : même nombre de corps, un corps par `nom`, fermé, dont la boîte englobante va de (x, y, 0) à (x + largeur, y + longueur, hauteur) à 0,01 mm près et dont le volume vaut `volume_mm3` à 0,01 % près. Si un écart apparaît, ne rien exporter et le signaler.\n3. Si tout concorde, ajouter les commandes `export_3mf` à la fin du script, puis lancer `solidcraft-cli run script.json --save casier.sc` dans le dossier du fichier : cela enregistre le modèle et écrit un fichier 3MF par morceau dans impression/ (créer ce dossier avant).\n4. Rendre compte : nombre de morceaux, plus grand morceau, et les éventuels écarts.\nLes morceaux d'une même boîte (B3-M1, B3-M2…) s'assemblent par enfourchement : le tenon du morceau de plus petit numéro entre dans la fourche du suivant.",
+ "tiroir": {
+  "largeur": 325,
+  "longueur": 405,
+  "hauteur": 60,
+  "epaisseur": 4,
+  "epaisseur_fond": 3,
+  "jeu": 0.5,
+  "plateau": 180
+ },
+ "boites": [
+  {
+   "x": 0,
+   "y": 0,
+   "largeur": 100,
+   "longueur": 200,
+   "auto": false
+  },
+  {
+   "x": 0,
+   "y": 200,
+   "largeur": 100,
+   "longueur": 205,
+   "auto": false
+  },
+  {
+   "x": 100,
+   "y": 0,
+   "largeur": 225,
+   "longueur": 80,
+   "auto": false
+  },
+  {
+   "x": 100,
+   "y": 80,
+   "largeur": 100,
+   "longueur": 325,
+   "auto": false
+  },
+  {
+   "x": 200,
+   "y": 80,
+   "largeur": 125,
+   "longueur": 100,
+   "auto": false
+  },
+  {
+   "x": 200,
+   "y": 180,
+   "largeur": 125,
+   "longueur": 225,
+   "auto": false
+  }
+ ],
+ "alertes": [],
+ "morceaux": [
+  {
+   "nom": "B1-M1",
+   "boite": 1,
+   "x": 0,
+   "y": 0,
+   "largeur": 99.75,
+   "longueur": 109.875,
+   "hauteur": 60,
+   "volume_mm3": 97890.069
+  },
+  {
+   "nom": "B1-M2",
+   "boite": 1,
+   "x": 0,
+   "y": 99.975,
+   "largeur": 99.75,
+   "longueur": 99.775,
+   "hauteur": 60,
+   "volume_mm3": 94173.269
+  },
+  {
+   "nom": "B2-M1",
+   "boite": 2,
+   "x": 0,
+   "y": 200.25,
+   "largeur": 99.75,
+   "longueur": 112.375,
+   "hauteur": 60,
+   "volume_mm3": 99778.194
+  },
+  {
+   "nom": "B2-M2",
+   "boite": 2,
+   "x": 0,
+   "y": 302.725,
+   "largeur": 99.75,
+   "longueur": 102.275,
+   "hauteur": 60,
+   "volume_mm3": 96061.394
+  },
+  {
+   "nom": "B3-M1",
+   "boite": 3,
+   "x": 100.25,
+   "y": 0,
+   "largeur": 122.375,
+   "longueur": 79.75,
+   "hauteur": 60,
+   "volume_mm3": 96034.194
+  },
+  {
+   "nom": "B3-M2",
+   "boite": 3,
+   "x": 212.725,
+   "y": 0,
+   "largeur": 112.275,
+   "longueur": 79.75,
+   "hauteur": 60,
+   "volume_mm3": 92317.394
+  },
+  {
+   "nom": "B4-M1",
+   "boite": 4,
+   "x": 100.25,
+   "y": 80.25,
+   "largeur": 99.5,
+   "longueur": 172.375,
+   "hauteur": 60,
+   "volume_mm3": 144914.488
+  },
+  {
+   "nom": "B4-M2",
+   "boite": 4,
+   "x": 100.25,
+   "y": 242.725,
+   "largeur": 99.5,
+   "longueur": 162.275,
+   "hauteur": 60,
+   "volume_mm3": 141197.688
+  },
+  {
+   "nom": "B5-M1",
+   "boite": 5,
+   "x": 200.25,
+   "y": 80.25,
+   "largeur": 124.75,
+   "longueur": 99.5,
+   "hauteur": 60,
+   "volume_mm3": 135847.875
+  },
+  {
+   "nom": "B6-M1",
+   "boite": 6,
+   "x": 200.25,
+   "y": 180.25,
+   "largeur": 124.75,
+   "longueur": 122.375,
+   "hauteur": 60,
+   "volume_mm3": 121451.319
+  },
+  {
+   "nom": "B6-M2",
+   "boite": 6,
+   "x": 200.25,
+   "y": 292.725,
+   "largeur": 124.75,
+   "longueur": 112.275,
+   "hauteur": 60,
+   "volume_mm3": 117734.519
+  }
+ ],
+ "script_solidcraft": {
+  "commands": [
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 99.75,
+     "width": 99.775,
+     "height": 3,
+     "corner": [
+      0,
+      0,
+      0
+     ],
+     "name": "B1-M1 1",
+     "operation": "new",
+     "body_name": "B1-M1"
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 4,
+     "width": 99.775,
+     "height": 60,
+     "corner": [
+      0,
+      0,
+      0
+     ],
+     "name": "B1-M1 2",
+     "operation": "join",
+     "targets": [
+      "B1-M1"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 4,
+     "width": 99.775,
+     "height": 60,
+     "corner": [
+      95.75,
+      0,
+      0
+     ],
+     "name": "B1-M1 3",
+     "operation": "join",
+     "targets": [
+      "B1-M1"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 99.75,
+     "width": 4,
+     "height": 60,
+     "corner": [
+      0,
+      0,
+      0
+     ],
+     "name": "B1-M1 4",
+     "operation": "join",
+     "targets": [
+      "B1-M1"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 1.333,
+     "width": 11.1,
+     "height": 60,
+     "corner": [
+      1.333,
+      98.775,
+      0
+     ],
+     "name": "B1-M1 5",
+     "operation": "join",
+     "targets": [
+      "B1-M1"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 1.333,
+     "width": 11.1,
+     "height": 60,
+     "corner": [
+      97.083,
+      98.775,
+      0
+     ],
+     "name": "B1-M1 6",
+     "operation": "join",
+     "targets": [
+      "B1-M1"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 99.75,
+     "width": 99.775,
+     "height": 3,
+     "corner": [
+      0,
+      99.975,
+      0
+     ],
+     "name": "B1-M2 1",
+     "operation": "new",
+     "body_name": "B1-M2"
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 4,
+     "width": 99.775,
+     "height": 60,
+     "corner": [
+      0,
+      99.975,
+      0
+     ],
+     "name": "B1-M2 2",
+     "operation": "join",
+     "targets": [
+      "B1-M2"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 4,
+     "width": 99.775,
+     "height": 60,
+     "corner": [
+      95.75,
+      99.975,
+      0
+     ],
+     "name": "B1-M2 3",
+     "operation": "join",
+     "targets": [
+      "B1-M2"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 99.75,
+     "width": 4,
+     "height": 60,
+     "corner": [
+      0,
+      195.75,
+      0
+     ],
+     "name": "B1-M2 4",
+     "operation": "join",
+     "targets": [
+      "B1-M2"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 1.733,
+     "width": 11.1,
+     "height": 62,
+     "corner": [
+      1.133,
+      98.975,
+      -1
+     ],
+     "name": "B1-M2 5",
+     "operation": "cut",
+     "targets": [
+      "B1-M2"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 1.733,
+     "width": 11.1,
+     "height": 62,
+     "corner": [
+      96.883,
+      98.975,
+      -1
+     ],
+     "name": "B1-M2 6",
+     "operation": "cut",
+     "targets": [
+      "B1-M2"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 99.75,
+     "width": 102.275,
+     "height": 3,
+     "corner": [
+      0,
+      200.25,
+      0
+     ],
+     "name": "B2-M1 1",
+     "operation": "new",
+     "body_name": "B2-M1"
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 4,
+     "width": 102.275,
+     "height": 60,
+     "corner": [
+      0,
+      200.25,
+      0
+     ],
+     "name": "B2-M1 2",
+     "operation": "join",
+     "targets": [
+      "B2-M1"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 4,
+     "width": 102.275,
+     "height": 60,
+     "corner": [
+      95.75,
+      200.25,
+      0
+     ],
+     "name": "B2-M1 3",
+     "operation": "join",
+     "targets": [
+      "B2-M1"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 99.75,
+     "width": 4,
+     "height": 60,
+     "corner": [
+      0,
+      200.25,
+      0
+     ],
+     "name": "B2-M1 4",
+     "operation": "join",
+     "targets": [
+      "B2-M1"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 1.333,
+     "width": 11.1,
+     "height": 60,
+     "corner": [
+      1.333,
+      301.525,
+      0
+     ],
+     "name": "B2-M1 5",
+     "operation": "join",
+     "targets": [
+      "B2-M1"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 1.333,
+     "width": 11.1,
+     "height": 60,
+     "corner": [
+      97.083,
+      301.525,
+      0
+     ],
+     "name": "B2-M1 6",
+     "operation": "join",
+     "targets": [
+      "B2-M1"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 99.75,
+     "width": 102.275,
+     "height": 3,
+     "corner": [
+      0,
+      302.725,
+      0
+     ],
+     "name": "B2-M2 1",
+     "operation": "new",
+     "body_name": "B2-M2"
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 4,
+     "width": 102.275,
+     "height": 60,
+     "corner": [
+      0,
+      302.725,
+      0
+     ],
+     "name": "B2-M2 2",
+     "operation": "join",
+     "targets": [
+      "B2-M2"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 4,
+     "width": 102.275,
+     "height": 60,
+     "corner": [
+      95.75,
+      302.725,
+      0
+     ],
+     "name": "B2-M2 3",
+     "operation": "join",
+     "targets": [
+      "B2-M2"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 99.75,
+     "width": 4,
+     "height": 60,
+     "corner": [
+      0,
+      401,
+      0
+     ],
+     "name": "B2-M2 4",
+     "operation": "join",
+     "targets": [
+      "B2-M2"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 1.733,
+     "width": 11.1,
+     "height": 62,
+     "corner": [
+      1.133,
+      301.725,
+      -1
+     ],
+     "name": "B2-M2 5",
+     "operation": "cut",
+     "targets": [
+      "B2-M2"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 1.733,
+     "width": 11.1,
+     "height": 62,
+     "corner": [
+      96.883,
+      301.725,
+      -1
+     ],
+     "name": "B2-M2 6",
+     "operation": "cut",
+     "targets": [
+      "B2-M2"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 112.275,
+     "width": 79.75,
+     "height": 3,
+     "corner": [
+      100.25,
+      0,
+      0
+     ],
+     "name": "B3-M1 1",
+     "operation": "new",
+     "body_name": "B3-M1"
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 4,
+     "width": 79.75,
+     "height": 60,
+     "corner": [
+      100.25,
+      0,
+      0
+     ],
+     "name": "B3-M1 2",
+     "operation": "join",
+     "targets": [
+      "B3-M1"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 112.275,
+     "width": 4,
+     "height": 60,
+     "corner": [
+      100.25,
+      0,
+      0
+     ],
+     "name": "B3-M1 3",
+     "operation": "join",
+     "targets": [
+      "B3-M1"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 112.275,
+     "width": 4,
+     "height": 60,
+     "corner": [
+      100.25,
+      75.75,
+      0
+     ],
+     "name": "B3-M1 4",
+     "operation": "join",
+     "targets": [
+      "B3-M1"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 11.1,
+     "width": 1.333,
+     "height": 60,
+     "corner": [
+      211.525,
+      1.333,
+      0
+     ],
+     "name": "B3-M1 5",
+     "operation": "join",
+     "targets": [
+      "B3-M1"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 11.1,
+     "width": 1.333,
+     "height": 60,
+     "corner": [
+      211.525,
+      77.083,
+      0
+     ],
+     "name": "B3-M1 6",
+     "operation": "join",
+     "targets": [
+      "B3-M1"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 112.275,
+     "width": 79.75,
+     "height": 3,
+     "corner": [
+      212.725,
+      0,
+      0
+     ],
+     "name": "B3-M2 1",
+     "operation": "new",
+     "body_name": "B3-M2"
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 4,
+     "width": 79.75,
+     "height": 60,
+     "corner": [
+      321,
+      0,
+      0
+     ],
+     "name": "B3-M2 2",
+     "operation": "join",
+     "targets": [
+      "B3-M2"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 112.275,
+     "width": 4,
+     "height": 60,
+     "corner": [
+      212.725,
+      0,
+      0
+     ],
+     "name": "B3-M2 3",
+     "operation": "join",
+     "targets": [
+      "B3-M2"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 112.275,
+     "width": 4,
+     "height": 60,
+     "corner": [
+      212.725,
+      75.75,
+      0
+     ],
+     "name": "B3-M2 4",
+     "operation": "join",
+     "targets": [
+      "B3-M2"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 11.1,
+     "width": 1.733,
+     "height": 62,
+     "corner": [
+      211.725,
+      1.133,
+      -1
+     ],
+     "name": "B3-M2 5",
+     "operation": "cut",
+     "targets": [
+      "B3-M2"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 11.1,
+     "width": 1.733,
+     "height": 62,
+     "corner": [
+      211.725,
+      76.883,
+      -1
+     ],
+     "name": "B3-M2 6",
+     "operation": "cut",
+     "targets": [
+      "B3-M2"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 99.5,
+     "width": 162.275,
+     "height": 3,
+     "corner": [
+      100.25,
+      80.25,
+      0
+     ],
+     "name": "B4-M1 1",
+     "operation": "new",
+     "body_name": "B4-M1"
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 4,
+     "width": 162.275,
+     "height": 60,
+     "corner": [
+      100.25,
+      80.25,
+      0
+     ],
+     "name": "B4-M1 2",
+     "operation": "join",
+     "targets": [
+      "B4-M1"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 4,
+     "width": 162.275,
+     "height": 60,
+     "corner": [
+      195.75,
+      80.25,
+      0
+     ],
+     "name": "B4-M1 3",
+     "operation": "join",
+     "targets": [
+      "B4-M1"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 99.5,
+     "width": 4,
+     "height": 60,
+     "corner": [
+      100.25,
+      80.25,
+      0
+     ],
+     "name": "B4-M1 4",
+     "operation": "join",
+     "targets": [
+      "B4-M1"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 1.333,
+     "width": 11.1,
+     "height": 60,
+     "corner": [
+      101.583,
+      241.525,
+      0
+     ],
+     "name": "B4-M1 5",
+     "operation": "join",
+     "targets": [
+      "B4-M1"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 1.333,
+     "width": 11.1,
+     "height": 60,
+     "corner": [
+      197.083,
+      241.525,
+      0
+     ],
+     "name": "B4-M1 6",
+     "operation": "join",
+     "targets": [
+      "B4-M1"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 99.5,
+     "width": 162.275,
+     "height": 3,
+     "corner": [
+      100.25,
+      242.725,
+      0
+     ],
+     "name": "B4-M2 1",
+     "operation": "new",
+     "body_name": "B4-M2"
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 4,
+     "width": 162.275,
+     "height": 60,
+     "corner": [
+      100.25,
+      242.725,
+      0
+     ],
+     "name": "B4-M2 2",
+     "operation": "join",
+     "targets": [
+      "B4-M2"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 4,
+     "width": 162.275,
+     "height": 60,
+     "corner": [
+      195.75,
+      242.725,
+      0
+     ],
+     "name": "B4-M2 3",
+     "operation": "join",
+     "targets": [
+      "B4-M2"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 99.5,
+     "width": 4,
+     "height": 60,
+     "corner": [
+      100.25,
+      401,
+      0
+     ],
+     "name": "B4-M2 4",
+     "operation": "join",
+     "targets": [
+      "B4-M2"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 1.733,
+     "width": 11.1,
+     "height": 62,
+     "corner": [
+      101.383,
+      241.725,
+      -1
+     ],
+     "name": "B4-M2 5",
+     "operation": "cut",
+     "targets": [
+      "B4-M2"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 1.733,
+     "width": 11.1,
+     "height": 62,
+     "corner": [
+      196.883,
+      241.725,
+      -1
+     ],
+     "name": "B4-M2 6",
+     "operation": "cut",
+     "targets": [
+      "B4-M2"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 124.75,
+     "width": 99.5,
+     "height": 3,
+     "corner": [
+      200.25,
+      80.25,
+      0
+     ],
+     "name": "B5-M1 1",
+     "operation": "new",
+     "body_name": "B5-M1"
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 4,
+     "width": 99.5,
+     "height": 60,
+     "corner": [
+      200.25,
+      80.25,
+      0
+     ],
+     "name": "B5-M1 2",
+     "operation": "join",
+     "targets": [
+      "B5-M1"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 4,
+     "width": 99.5,
+     "height": 60,
+     "corner": [
+      321,
+      80.25,
+      0
+     ],
+     "name": "B5-M1 3",
+     "operation": "join",
+     "targets": [
+      "B5-M1"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 124.75,
+     "width": 4,
+     "height": 60,
+     "corner": [
+      200.25,
+      80.25,
+      0
+     ],
+     "name": "B5-M1 4",
+     "operation": "join",
+     "targets": [
+      "B5-M1"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 124.75,
+     "width": 4,
+     "height": 60,
+     "corner": [
+      200.25,
+      175.75,
+      0
+     ],
+     "name": "B5-M1 5",
+     "operation": "join",
+     "targets": [
+      "B5-M1"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 124.75,
+     "width": 112.275,
+     "height": 3,
+     "corner": [
+      200.25,
+      180.25,
+      0
+     ],
+     "name": "B6-M1 1",
+     "operation": "new",
+     "body_name": "B6-M1"
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 4,
+     "width": 112.275,
+     "height": 60,
+     "corner": [
+      200.25,
+      180.25,
+      0
+     ],
+     "name": "B6-M1 2",
+     "operation": "join",
+     "targets": [
+      "B6-M1"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 4,
+     "width": 112.275,
+     "height": 60,
+     "corner": [
+      321,
+      180.25,
+      0
+     ],
+     "name": "B6-M1 3",
+     "operation": "join",
+     "targets": [
+      "B6-M1"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 124.75,
+     "width": 4,
+     "height": 60,
+     "corner": [
+      200.25,
+      180.25,
+      0
+     ],
+     "name": "B6-M1 4",
+     "operation": "join",
+     "targets": [
+      "B6-M1"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 1.333,
+     "width": 11.1,
+     "height": 60,
+     "corner": [
+      201.583,
+      291.525,
+      0
+     ],
+     "name": "B6-M1 5",
+     "operation": "join",
+     "targets": [
+      "B6-M1"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 1.333,
+     "width": 11.1,
+     "height": 60,
+     "corner": [
+      322.333,
+      291.525,
+      0
+     ],
+     "name": "B6-M1 6",
+     "operation": "join",
+     "targets": [
+      "B6-M1"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 124.75,
+     "width": 112.275,
+     "height": 3,
+     "corner": [
+      200.25,
+      292.725,
+      0
+     ],
+     "name": "B6-M2 1",
+     "operation": "new",
+     "body_name": "B6-M2"
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 4,
+     "width": 112.275,
+     "height": 60,
+     "corner": [
+      200.25,
+      292.725,
+      0
+     ],
+     "name": "B6-M2 2",
+     "operation": "join",
+     "targets": [
+      "B6-M2"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 4,
+     "width": 112.275,
+     "height": 60,
+     "corner": [
+      321,
+      292.725,
+      0
+     ],
+     "name": "B6-M2 3",
+     "operation": "join",
+     "targets": [
+      "B6-M2"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 124.75,
+     "width": 4,
+     "height": 60,
+     "corner": [
+      200.25,
+      401,
+      0
+     ],
+     "name": "B6-M2 4",
+     "operation": "join",
+     "targets": [
+      "B6-M2"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 1.733,
+     "width": 11.1,
+     "height": 62,
+     "corner": [
+      201.383,
+      291.725,
+      -1
+     ],
+     "name": "B6-M2 5",
+     "operation": "cut",
+     "targets": [
+      "B6-M2"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 1.733,
+     "width": 11.1,
+     "height": 62,
+     "corner": [
+      322.133,
+      291.725,
+      -1
+     ],
+     "name": "B6-M2 6",
+     "operation": "cut",
+     "targets": [
+      "B6-M2"
+     ]
+    }
+   }
+  ]
+ },
+ "export_3mf": [
+  {
+   "command": "file.export",
+   "params": {
+    "path": "impression/B1-M1.3mf",
+    "bodies": [
+     "B1-M1"
+    ]
+   }
+  },
+  {
+   "command": "file.export",
+   "params": {
+    "path": "impression/B1-M2.3mf",
+    "bodies": [
+     "B1-M2"
+    ]
+   }
+  },
+  {
+   "command": "file.export",
+   "params": {
+    "path": "impression/B2-M1.3mf",
+    "bodies": [
+     "B2-M1"
+    ]
+   }
+  },
+  {
+   "command": "file.export",
+   "params": {
+    "path": "impression/B2-M2.3mf",
+    "bodies": [
+     "B2-M2"
+    ]
+   }
+  },
+  {
+   "command": "file.export",
+   "params": {
+    "path": "impression/B3-M1.3mf",
+    "bodies": [
+     "B3-M1"
+    ]
+   }
+  },
+  {
+   "command": "file.export",
+   "params": {
+    "path": "impression/B3-M2.3mf",
+    "bodies": [
+     "B3-M2"
+    ]
+   }
+  },
+  {
+   "command": "file.export",
+   "params": {
+    "path": "impression/B4-M1.3mf",
+    "bodies": [
+     "B4-M1"
+    ]
+   }
+  },
+  {
+   "command": "file.export",
+   "params": {
+    "path": "impression/B4-M2.3mf",
+    "bodies": [
+     "B4-M2"
+    ]
+   }
+  },
+  {
+   "command": "file.export",
+   "params": {
+    "path": "impression/B5-M1.3mf",
+    "bodies": [
+     "B5-M1"
+    ]
+   }
+  },
+  {
+   "command": "file.export",
+   "params": {
+    "path": "impression/B6-M1.3mf",
+    "bodies": [
+     "B6-M1"
+    ]
+   }
+  },
+  {
+   "command": "file.export",
+   "params": {
+    "path": "impression/B6-M2.3mf",
+    "bodies": [
+     "B6-M2"
+    ]
+   }
+  }
+ ]
+}

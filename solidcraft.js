@@ -2,6 +2,8 @@
 // Une boîte plus longue que le plateau est coupée en morceaux égaux ; à chaque coupe, le morceau de
 // coordonnée basse porte un tenon (tiers central de chaque paroi traversée) et le suivant une fourche.
 
+import { controler } from "./logique.js";
+
 export const TENON = { longueur: 10, jeu: 0.2 };
 export const MARGE_PLATEAU = 12;
 export const JOUE_MIN = 0.8;
@@ -110,4 +112,74 @@ export function morceaux(plan) {
     }
   });
   return { morceaux: out, alertes };
+}
+
+// Commandes SolidCraft qui construisent chaque morceau comme un corps nommé, sans toucher aux autres.
+export function script(plan) {
+  const t = plan.tiroir;
+  const commands = [];
+  for (const m of morceaux(plan).morceaux) {
+    m.ops.forEach((o, n) => {
+      const params = {
+        length: arrondi(o.r.largeur),
+        width: arrondi(o.r.longueur),
+        height: o.couches === "f" ? t.epaisseur_fond : o.op === "sub" ? t.hauteur + 2 : t.hauteur,
+        corner: [arrondi(o.r.x), arrondi(o.r.y), o.op === "sub" ? -1 : 0],
+        name: `${m.nom} ${n + 1}`,
+      };
+      if (n === 0) Object.assign(params, { operation: "new", body_name: m.nom });
+      else Object.assign(params, { operation: o.op === "add" ? "join" : "cut", targets: [m.nom] });
+      commands.push({ command: "solid.box", params });
+    });
+  }
+  return { commands };
+}
+
+export const CONSIGNE = [
+  "Ce fichier décrit un casier de tiroir fait de boîtes indépendantes, à imprimer en 3D une pièce à la fois.",
+  "Il vient de l'appli « Casier de tiroir » ; tout est déjà calculé (jeu entre boîtes, découpes, tenons et fourches), il n'y a rien à recalculer.",
+  "Pour le construire avec SolidCraft (solidcraft-cli doit être installé) :",
+  "1. Écrire la liste `script_solidcraft.commands` telle quelle dans un fichier script.json.",
+  "2. Lancer `solidcraft-cli eval script.json` et comparer chaque corps à la liste `morceaux` : même nombre de corps, un corps par `nom`, fermé, dont la boîte englobante va de (x, y, 0) à (x + largeur, y + longueur, hauteur) à 0,01 mm près et dont le volume vaut `volume_mm3` à 0,01 % près. Si un écart apparaît, ne rien exporter et le signaler.",
+  "3. Si tout concorde, ajouter les commandes `export_3mf` à la fin du script, puis lancer `solidcraft-cli run script.json --save casier.sc` dans le dossier du fichier : cela enregistre le modèle et écrit un fichier 3MF par morceau dans impression/ (créer ce dossier avant).",
+  "4. Rendre compte : nombre de morceaux, plus grand morceau, et les éventuels écarts.",
+  "Les morceaux d'une même boîte (B3-M1, B3-M2…) s'assemblent par enfourchement : le tenon du morceau de plus petit numéro entre dans la fourche du suivant.",
+].join("\n");
+
+// Le fichier téléchargé : autonome, il suffit à un Claude Code avec SolidCraft pour tout construire.
+export function fichier(plan) {
+  const { morceaux: m, alertes } = morceaux(plan);
+  return {
+    version: 1,
+    consigne: CONSIGNE,
+    tiroir: plan.tiroir,
+    boites: plan.boites,
+    alertes,
+    morceaux: m.map(({ ops, ...reste }) => ({ ...reste, volume_mm3: arrondi(reste.volume_mm3) })),
+    script_solidcraft: script(plan),
+    export_3mf: m.map((x) => ({ command: "file.export", params: { path: `impression/${x.nom}.3mf`, bodies: [x.nom] } })),
+  };
+}
+
+const CHAMPS_TIROIR = ["largeur", "longueur", "hauteur", "epaisseur", "epaisseur_fond", "jeu", "plateau"];
+
+// Relit un fichier téléchargé (ou un plan) pour le modifier ; refuse tout ce qui n'en est pas un.
+export function lireFichier(texte) {
+  let d;
+  try {
+    d = JSON.parse(texte);
+  } catch {
+    return { erreur: "Ce fichier n'est pas un plan de casier (ce n'est pas du JSON)." };
+  }
+  if (!d || typeof d !== "object" || !d.tiroir || !Array.isArray(d.boites)) return { erreur: "Ce fichier n'est pas un plan de casier." };
+  if (d.version !== 1) return { erreur: `Version de plan inconnue (${d.version}) : mettez l'appli à jour.` };
+  const nombre = (v) => typeof v === "number" && Number.isFinite(v);
+  if (!CHAMPS_TIROIR.every((c) => nombre(d.tiroir[c]))) return { erreur: "Les cotes du tiroir sont incomplètes." };
+  if (!d.boites.every((b) => ["x", "y", "largeur", "longueur"].every((c) => nombre(b[c])))) return { erreur: "Une boîte du fichier est incomplète." };
+  const tiroir = Object.fromEntries(CHAMPS_TIROIR.map((c) => [c, d.tiroir[c]]));
+  const boites = d.boites.map((b) => ({ x: b.x, y: b.y, largeur: b.largeur, longueur: b.longueur, auto: !!b.auto }));
+  const plan = { version: 1, tiroir, boites };
+  const graves = controler(plan).filter((m) => !m.startsWith("Il reste un vide"));
+  if (graves.length) return { erreur: graves.join(" ") };
+  return { plan };
 }

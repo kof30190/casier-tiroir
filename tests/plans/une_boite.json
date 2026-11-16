@@ -1,0 +1,138 @@
+{
+ "version": 1,
+ "consigne": "Ce fichier décrit un casier de tiroir fait de boîtes indépendantes, à imprimer en 3D une pièce à la fois.\nIl vient de l'appli « Casier de tiroir » ; tout est déjà calculé (jeu entre boîtes, découpes, tenons et fourches), il n'y a rien à recalculer.\nPour le construire avec SolidCraft (solidcraft-cli doit être installé) :\n1. Écrire la liste `script_solidcraft.commands` telle quelle dans un fichier script.json.\n2. Lancer `solidcraft-cli eval script.json` et comparer chaque corps à la liste `morceaux` : même nombre de corps, un corps par `nom`, fermé, dont la boîte englobante va de (x, y, 0) à (x + largeur, y + longueur, hauteur) à 0,01 mm près et dont le volume vaut `volume_mm3` à 0,01 % près. Si un écart apparaît, ne rien exporter et le signaler.\n3. Si tout concorde, ajouter les commandes `export_3mf` à la fin du script, puis lancer `solidcraft-cli run script.json --save casier.sc` dans le dossier du fichier : cela enregistre le modèle et écrit un fichier 3MF par morceau dans impression/ (créer ce dossier avant).\n4. Rendre compte : nombre de morceaux, plus grand morceau, et les éventuels écarts.\nLes morceaux d'une même boîte (B3-M1, B3-M2…) s'assemblent par enfourchement : le tenon du morceau de plus petit numéro entre dans la fourche du suivant.",
+ "tiroir": {
+  "largeur": 150,
+  "longueur": 120,
+  "hauteur": 40,
+  "epaisseur": 4,
+  "epaisseur_fond": 3,
+  "jeu": 0.5,
+  "plateau": 180
+ },
+ "boites": [
+  {
+   "x": 0,
+   "y": 0,
+   "largeur": 150,
+   "longueur": 120,
+   "auto": true
+  }
+ ],
+ "alertes": [],
+ "morceaux": [
+  {
+   "nom": "B1-M1",
+   "boite": 1,
+   "x": 0,
+   "y": 0,
+   "largeur": 150,
+   "longueur": 120,
+   "hauteur": 40,
+   "volume_mm3": 131552
+  }
+ ],
+ "script_solidcraft": {
+  "commands": [
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 150,
+     "width": 120,
+     "height": 3,
+     "corner": [
+      0,
+      0,
+      0
+     ],
+     "name": "B1-M1 1",
+     "operation": "new",
+     "body_name": "B1-M1"
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 4,
+     "width": 120,
+     "height": 40,
+     "corner": [
+      0,
+      0,
+      0
+     ],
+     "name": "B1-M1 2",
+     "operation": "join",
+     "targets": [
+      "B1-M1"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 4,
+     "width": 120,
+     "height": 40,
+     "corner": [
+      146,
+      0,
+      0
+     ],
+     "name": "B1-M1 3",
+     "operation": "join",
+     "targets": [
+      "B1-M1"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 150,
+     "width": 4,
+     "height": 40,
+     "corner": [
+      0,
+      0,
+      0
+     ],
+     "name": "B1-M1 4",
+     "operation": "join",
+     "targets": [
+      "B1-M1"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 150,
+     "width": 4,
+     "height": 40,
+     "corner": [
+      0,
+      116,
+      0
+     ],
+     "name": "B1-M1 5",
+     "operation": "join",
+     "targets": [
+      "B1-M1"
+     ]
+    }
+   }
+  ]
+ },
+ "export_3mf": [
+  {
+   "command": "file.export",
+   "params": {
+    "path": "impression/B1-M1.3mf",
+    "bodies": [
+     "B1-M1"
+    ]
+   }
+  }
+ ]
+}
