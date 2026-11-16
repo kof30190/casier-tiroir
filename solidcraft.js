@@ -174,8 +174,12 @@ export function lireFichier(texte) {
   } catch {
     return { erreur: "Ce fichier n'est pas un plan de casier (ce n'est pas du JSON)." };
   }
-  if (!d || typeof d !== "object" || !d.tiroir || typeof d.tiroir !== "object" || !Array.isArray(d.boites)) return { erreur: "Ce fichier n'est pas un plan de casier." };
-  if (d.version !== 1) return { erreur: `Version de plan inconnue (${d.version}) : mettez l'appli à jour.` };
+  if (d && typeof d === "object" && d.version !== undefined && d.version !== 1) {
+    return { erreur: `Version de plan inconnue (${d.version}) : mettez l'appli à jour.` };
+  }
+  if (!d || typeof d !== "object" || d.version !== 1 || !d.tiroir || typeof d.tiroir !== "object" || !Array.isArray(d.boites)) {
+    return { erreur: "Ce fichier n'est pas un plan de casier." };
+  }
   const nombre = (v) => typeof v === "number" && Number.isFinite(v);
   if (!CHAMPS_TIROIR.every((c) => nombre(d.tiroir[c]))) return { erreur: "Les cotes du tiroir sont incomplètes." };
   for (const c of CHAMPS_TIROIR) {
@@ -190,4 +194,10 @@ export function lireFichier(texte) {
   const graves = controler(plan).filter((m) => !m.startsWith("Il reste un vide"));
   if (graves.length) return { erreur: graves.join(" ") };
   return { plan };
+}
+
+// Nom du fichier téléchargé, à la date locale (la date UTC change à 1 h du matin en France).
+export function nomFichier(date = new Date()) {
+  const deux = (n) => String(n).padStart(2, "0");
+  return `casier-${date.getFullYear()}-${deux(date.getMonth() + 1)}-${deux(date.getDate())}.json`;
 }

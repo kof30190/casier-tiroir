@@ -275,7 +275,7 @@ export function controler(plan) {
 // Lit une cote saisie : accepte la virgule française et « mm », refuse le reste avec un message.
 export function lireCote(texte, { min = 0, max = Infinity, entier = false } = {}) {
   const propre = String(texte).trim().replace(/\s*mm$/i, "").replace(",", ".");
-  if (!/^-?\d+(\.\d+)?$/.test(propre)) return { erreur: "Entrez un nombre en millimètres." };
+  if (!/^-?(\d+\.?\d*|\.\d+)$/.test(propre)) return { erreur: "Entrez un nombre en millimètres." };
   let v = Number(propre);
   if (entier) v = Math.round(v);
   if (v < min || (min === 0 && v < 0) || (min > 0 && v <= 0)) return { erreur: `La valeur doit être au moins ${String(min).replace(".", ",")} mm.` };
