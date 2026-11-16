@@ -155,7 +155,9 @@ function dessiner() {
     if (niveau(n) === "bloquant") classes.push("bloquant");
     else if (niveau(n) === "avertissement") classes.push("avert");
     if (selection?.type === "boite" && selection.index === k && !ap) classes.push("choisie");
-    const r = rectSvg(b, classes.join(" "), svg);
+    // un petit retrait à l'écran laisse voir le tiroir entre deux boîtes : chaque pourtour se lit seul
+    const retrait = Math.min(1.5 / px, b.largeur / 4, b.longueur / 4);
+    const r = rectSvg({ x: b.x + retrait, y: b.y + retrait, largeur: b.largeur - 2 * retrait, longueur: b.longueur - 2 * retrait }, classes.join(" "), svg);
     r.dataset.index = ap ? "" : k;
   });
   for (const p of pieces) {

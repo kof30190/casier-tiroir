@@ -10,9 +10,9 @@
   --grille-fine: #efe9e0;
   --grille: #ddd3c5;
   --boite: #e9cfa6;
-  --boite-bord: #9a6a33;
+  --boite-bord: #5e3a14;
   --auto: #bcd7e8;
-  --auto-bord: #4a7c9b;
+  --auto-bord: #234f6b;
   --zone: #4f9a5c;
   --alerte: #c0392b;
   --avert: #d68a0b;
@@ -22,7 +22,7 @@
   :root:not([data-theme="light"]) {
     --fond: #1c1a17; --surface: #262320; --texte: #ece6dd; --discret: #a59a8c; --ligne: #3a352f;
     --accent: #e08a45; --accent-texte: #1c1a17; --tiroir: #2d2925; --grille-fine: #34302b; --grille: #47413a;
-    --boite: #8a6a42; --boite-bord: #e2b77c; --auto: #3e5f74; --auto-bord: #9cc7e2; --zone: #7cc489;
+    --boite: #8a6a42; --boite-bord: #f6d6a4; --auto: #3e5f74; --auto-bord: #cfe8f8; --zone: #7cc489;
     --alerte: #ff6b5b; --avert: #f0b040;
     color-scheme: dark;
   }
@@ -72,21 +72,22 @@ input.invalide { border-color: var(--alerte); }
 #plan { flex: 1; width: 100%; min-height: 0; touch-action: none; user-select: none; cursor: crosshair; }
 .legende { display: flex; gap: 14px; align-items: center; justify-content: center; padding: 6px; color: var(--discret); font-size: 13px; }
 .pastille { display: inline-block; width: 14px; height: 10px; border-radius: 2px; margin-right: -8px; }
-.pastille.boite { background: var(--boite); border: 1px solid var(--boite-bord); }
-.pastille.auto { background: var(--auto); border: 1px solid var(--auto-bord); }
-.trait { display: inline-block; width: 18px; border-top: 2px dashed var(--texte); margin-right: -8px; }
+.pastille.boite { background: var(--boite); border: 2px solid var(--boite-bord); }
+.pastille.auto { background: var(--auto); border: 2px solid var(--auto-bord); }
+.trait { display: inline-block; width: 18px; border-top: 1px dashed var(--boite-bord); margin-right: -8px; }
 
 /* plan SVG */
 .tiroir { fill: var(--tiroir); stroke: var(--texte); stroke-width: 0.8; }
 .grille-fine { stroke: var(--grille-fine); stroke-width: 0.15; }
 .grille-forte { stroke: var(--grille); stroke-width: 0.4; }
-.boite { fill: var(--boite); stroke: var(--boite-bord); stroke-width: 0.8; cursor: pointer; }
+/* contours en pixels d'écran (non-scaling-stroke) : nets à tous les zooms */
+.boite { fill: var(--boite); stroke: var(--boite-bord); stroke-width: 2.5px; vector-effect: non-scaling-stroke; stroke-linejoin: round; cursor: pointer; }
 .boite.auto { fill: var(--auto); stroke: var(--auto-bord); }
 .boite.apercu { fill: var(--auto); stroke: var(--auto-bord); stroke-dasharray: 3 2; opacity: 0.85; }
-.boite.choisie { stroke: var(--accent); stroke-width: 2; }
-.boite.bloquant { stroke: var(--alerte); stroke-width: 2; }
-.boite.avert { stroke: var(--avert); stroke-width: 1.6; }
-.morceau { fill: none; stroke: var(--texte); stroke-width: 0.5; stroke-dasharray: 2 1.5; pointer-events: none; opacity: 0.7; }
+.boite.choisie { stroke: var(--accent); stroke-width: 3.5px; }
+.boite.bloquant { stroke: var(--alerte); stroke-width: 3.5px; }
+.boite.avert { stroke: var(--avert); stroke-width: 3px; }
+.morceau { fill: none; stroke: var(--boite-bord); stroke-width: 1px; vector-effect: non-scaling-stroke; stroke-dasharray: 2 2.5; pointer-events: none; opacity: 0.5; }
 .cote { fill: var(--texte); text-anchor: middle; dominant-baseline: central; pointer-events: none; font-weight: 600;
   paint-order: stroke; stroke: var(--boite); stroke-linejoin: round; }
 .cote.sur-auto { stroke: var(--auto); }
