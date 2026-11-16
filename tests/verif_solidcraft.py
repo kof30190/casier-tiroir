@@ -25,7 +25,9 @@ def pieces_attendues(plan):
         x2 = b["x"] + b["largeur"] - (j / 2 if b["x"] + b["largeur"] < W else 0)
         y1 = b["y"] + (j / 2 if b["y"] > 0 else 0)
         y2 = b["y"] + b["longueur"] - (j / 2 if b["y"] + b["longueur"] < L else 0)
-        nx, ny = max(1, math.ceil((x2 - x1) / lim - 1e-9)), max(1, math.ceil((y2 - y1) / lim - 1e-9))
+        # un morceau coupé doit tenir dans lim avec son tenon, qui dépasse de d + g/2
+        nombre = lambda cote: 1 if cote <= lim else math.ceil(cote / (lim - d - g / 2) - 1e-9)
+        nx, ny = nombre(x2 - x1), nombre(y2 - y1)
         if nx > 2 and ny > 2:
             continue
         # la boîte entière, puis la fente de jeu le long de chaque coupe, puis tenons et fourches
@@ -112,8 +114,8 @@ def verifier(chemin):
         if not b.get("closed"):
             ecarts.append(f"{nom} n'est pas fermé")
         plus_grand = max(plus_grand, mx[0] - mn[0], mx[1] - mn[1])
-        if max(mx[0] - mn[0], mx[1] - mn[1], mx[2] - mn[2]) > doc["tiroir"]["plateau"]:
-            ecarts.append(f"{nom} dépasse le plateau")
+        if max(mx[0] - mn[0], mx[1] - mn[1]) > doc["tiroir"]["plateau"] - MARGE + 1e-9 or mx[2] - mn[2] > doc["tiroir"]["plateau"]:
+            ecarts.append(f"{nom} dépasse le plateau moins la marge de {MARGE:g} mm")
     print(f"{os.path.basename(chemin):18} {'OK ' if not ecarts else 'NON'} morceaux {len(corps)} plus grand {plus_grand:.1f} mm")
     for x in ecarts[:12]:
         print("   ", x)

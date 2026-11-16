@@ -2,21 +2,13 @@
 // solidcraft.js ; ce fichier ne fait que les appeler et afficher le résultat.
 import {
   tailleMin, coller, rogner, zoneLibre, bande, couper, redimensionner, changerTiroir,
-  remplir, controler, lireCote, contient,
+  remplir, controler, lireCote, contient, texteVide, LIMITES_TIROIR,
 } from "./logique.js";
 import { morceaux, fichier, lireFichier } from "./solidcraft.js";
 
 const CLE = "casier-tiroir-plan";
 const TIROIR_DEFAUT = { largeur: 325, longueur: 405, hauteur: 60, epaisseur: 4, epaisseur_fond: 3, jeu: 0.5, plateau: 180 };
-const CHAMPS = {
-  largeur: { min: 50, max: 2000, entier: true },
-  longueur: { min: 50, max: 2000, entier: true },
-  hauteur: { min: 10, max: 500 },
-  epaisseur: { min: 0.8, max: 20 },
-  epaisseur_fond: { min: 0.6, max: 20 },
-  jeu: { min: 0, max: 5 },
-  plateau: { min: 50, max: 1000 },
-};
+const CHAMPS = LIMITES_TIROIR;
 const NS = "http://www.w3.org/2000/svg";
 const MARGE = 12;
 
@@ -263,10 +255,10 @@ function panneauOutil() {
       const lu = lireCote(cote.value, { min: tailleMin(plan.tiroir), entier: true });
       if (lu.erreur) return message(lu.erreur, "erreur");
       const b = bande(r, sens, cote_, lu.valeur);
-      ajouterBoite(b);
+      ajouterBoite(b, 0);
     };
     zone.append(h, ligne(sorte), ligne(cote, "mm", bouton("Ajouter", ajouter, "principal")),
-      ligne(bouton("Une boîte sur toute la zone", () => ajouterBoite(r))),
+      ligne(bouton("Une boîte sur toute la zone", () => ajouterBoite(r, 0))),
       Object.assign(document.createElement("p"), { textContent: "La bande ne prend que la place libre de cette zone." }));
     return;
   }
@@ -285,7 +277,7 @@ function panneauOutil() {
     for (const [entree, bord, depart] of [[larg, "droite", b.x], [long, "haut", b.y]]) {
       const lu = lireCote(entree.value, { min: 1, entier: true });
       if (lu.erreur) return message(lu.erreur, "erreur");
-      const r = redimensionner(boites, k, bord, depart + lu.valeur, plan.tiroir);
+      const r = redimensionner(boites, k, bord, depart + lu.valeur, plan.tiroir, 0);
       if (r.erreur) return message(r.erreur, "erreur");
       boites = r;
     }
@@ -358,8 +350,9 @@ function tout() {
 
 // ---------- actions ----------
 
-function ajouterBoite(r) {
-  const propre = coller(r, plan.boites, plan.tiroir);
+// `tol` = 0 quand la boîte vient d'une cote tapée : elle reste exacte.
+function ajouterBoite(r, tol) {
+  const propre = coller(r, plan.boites, plan.tiroir, tol);
   const rogne = rogner(propre, { x: propre.x, y: propre.y }, plan.boites, plan.tiroir);
   if (!rogne) return message(`Pas assez de place : une boîte fait au moins ${tailleMin(plan.tiroir)} mm de côté.`, "erreur");
   selection = { type: "boite", index: plan.boites.length };
@@ -414,8 +407,8 @@ function valider() {
     etroits = trop_etroits;
     apercu = null;
     tout();
-    const r = trop_etroits[0];
-    return message(`Il reste un vide trop étroit pour une boîte (${mm(r.largeur)} × ${mm(r.longueur)} mm, en rouge) : agrandissez une boîte voisine pour le combler.`, "erreur");
+    const liste = trop_etroits.map(texteVide).join(" ; ");
+    return message(`${trop_etroits.length > 1 ? "Ces vides sont trop étroits" : "Ce vide est trop étroit"} pour une boîte (en rouge) : ${liste}. Agrandissez une boîte voisine pour ${trop_etroits.length > 1 ? "les" : "le"} combler.`, "erreur");
   }
   apercu = ajoutees;
   etroits = [];
@@ -427,12 +420,15 @@ function valider() {
     return message(`Une boîte ajoutée pour combler un vide serait trop grande : tracez vous-même les boîtes de cette zone. ${autre[0].texte}`, "erreur");
   }
   const complet = { ...plan, boites: [...plan.boites, ...ajoutees] };
-  const nbPieces = morceaux(complet).morceaux.length;
+  const { morceaux: piecesCompletes, alertes: alertesCompletes } = morceaux(complet);
+  const nbPieces = piecesCompletes.length;
+  const avertissements = regrouper(alertesCompletes.filter((a) => a.niveau === "avertissement"));
   $("#confirmer-texte").textContent = (ajoutees.length
     ? `${ajoutees.length} boîte${ajoutees.length > 1 ? "s ont été ajoutées" : " a été ajoutée"} pour combler les vides (en bleu). `
     : "Le tiroir est entièrement couvert. ")
     + `Le casier compte ${complet.boites.length} boîtes, soit ${nbPieces} pièce${nbPieces > 1 ? "s" : ""} à imprimer. `
-    + "Le fichier téléchargé contient tout ce qu'il faut pour construire les pièces dans SolidCraft.";
+    + "Le fichier téléchargé contient tout ce qu'il faut pour construire les pièces dans SolidCraft."
+    + (avertissements.length ? ` Attention : ${avertissements.join(" ")}` : "");
   const dlg = $("#confirmer");
   dlg.returnValue = "";
   dlg.showModal();
@@ -446,6 +442,19 @@ function valider() {
       tout();
     }
   }, { once: true });
+}
+
+// « Boîte 1 : X » + « Boîte 2 : X » → « Boîtes 1 et 2 : X ».
+function regrouper(alertes) {
+  const parTexte = new Map();
+  for (const a of alertes) {
+    const fin = a.texte.replace(/^Boîte \d+ : /, "");
+    parTexte.set(fin, [...(parTexte.get(fin) || []), a.boite]);
+  }
+  return [...parTexte].map(([fin, nums]) => {
+    const liste = nums.length > 1 ? `${nums.slice(0, -1).join(", ")} et ${nums.at(-1)}` : String(nums[0]);
+    return `${nums.length > 1 ? "Boîtes" : "Boîte"} ${liste} : ${fin}`;
+  });
 }
 
 function telecharger(p) {
@@ -572,6 +581,7 @@ svg.addEventListener("wheel", (evt) => {
 window.addEventListener("resize", () => dessiner());
 
 document.addEventListener("keydown", (evt) => {
+  if ($("#confirmer").open) return; // la fenêtre de confirmation gère ses propres touches
   const saisie = evt.target.closest?.("input, select, textarea");
   const cmd = evt.metaKey || evt.ctrlKey;
   if (cmd && evt.key.toLowerCase() === "z") {

@@ -3,6 +3,17 @@
 
 export const COLLAGE_MM = 5;
 
+// Valeurs admises pour les cotes du tiroir (saisie dans la page et fichiers rouverts).
+export const LIMITES_TIROIR = {
+  largeur: { min: 50, max: 2000, entier: true },
+  longueur: { min: 50, max: 2000, entier: true },
+  hauteur: { min: 10, max: 500 },
+  epaisseur: { min: 0.8, max: 20 },
+  epaisseur_fond: { min: 0.6, max: 20 },
+  jeu: { min: 0, max: 5 },
+  plateau: { min: 50, max: 1000 },
+};
+
 export function tailleMin(tiroir) {
   return 2 * tiroir.epaisseur + 10;
 }
@@ -149,11 +160,12 @@ export function couper(boite, axe, choix, tiroir) {
 }
 
 // Déplace un bord d'une boîte à la coordonnée `valeur` (collée aux bords proches).
-export function redimensionner(boites, index, bord, valeur, tiroir) {
+// `tol` = 0 pour une cote tapée au clavier, qui doit rester exacte.
+export function redimensionner(boites, index, bord, valeur, tiroir, tol = COLLAGE_MM) {
   const b = boites[index];
   const autres = boites.filter((_, k) => k !== index);
   const axe = bord === "gauche" || bord === "droite" ? "x" : "y";
-  const v = aimanter(Math.round(valeur), bords(autres, tiroir, axe), COLLAGE_MM);
+  const v = aimanter(Math.round(valeur), bords(autres, tiroir, axe), tol);
   let [x1, y1, x2, y2] = [b.x, b.y, droite(b), haut(b)];
   if (bord === "gauche") x1 = v;
   if (bord === "droite") x2 = v;
@@ -175,13 +187,23 @@ export function changerTiroir(plan, nouveau) {
   const messages = [];
   const boites = [];
   plan.boites.forEach((b, k) => {
-    let x2 = droite(b) === ancien.largeur ? nouveau.largeur : Math.min(droite(b), nouveau.largeur);
-    let y2 = haut(b) === ancien.longueur ? nouveau.longueur : Math.min(haut(b), nouveau.longueur);
-    if (x2 - b.x < min || y2 - b.y < min) {
-      messages.push(`Boîte ${k + 1} retirée : elle ne tient plus dans le tiroir.`);
+    const suitX = droite(b) === ancien.largeur;
+    const suitY = haut(b) === ancien.longueur;
+    const x2 = suitX ? nouveau.largeur : Math.min(droite(b), nouveau.largeur);
+    const y2 = suitY ? nouveau.longueur : Math.min(haut(b), nouveau.longueur);
+    if (b.x >= nouveau.largeur || b.y >= nouveau.longueur) {
+      messages.push(`Boîte ${k + 1} retirée : elle est hors du nouveau tiroir.`);
       return;
     }
-    boites.push({ ...b, ...rect(b.x, b.y, x2, y2) });
+    if (x2 - b.x < min || y2 - b.y < min) {
+      messages.push(`Boîte ${k + 1} retirée : elle serait trop petite (${min} mm de côté au moins).`);
+      return;
+    }
+    const r = rect(b.x, b.y, x2, y2);
+    if ((!suitX && x2 !== droite(b)) || (!suitY && y2 !== haut(b))) {
+      messages.push(`Boîte ${k + 1} rognée à ${r.largeur} × ${r.longueur} mm.`);
+    }
+    boites.push({ ...b, ...r });
   });
   return { plan: { ...plan, tiroir: nouveau, boites }, messages };
 }
@@ -245,7 +267,7 @@ export function controler(plan) {
   });
   const { ajoutees, trop_etroits } = remplir(boites, tiroir);
   for (const r of [...ajoutees, ...trop_etroits]) {
-    messages.push(`Il reste un vide de ${r.largeur} × ${r.longueur} mm en (${r.x}, ${r.y}).`);
+    messages.push(`Il reste un vide de ${texteVide(r)}.`);
   }
   return messages;
 }
@@ -259,4 +281,10 @@ export function lireCote(texte, { min = 0, max = Infinity, entier = false } = {}
   if (v < min || (min === 0 && v < 0) || (min > 0 && v <= 0)) return { erreur: `La valeur doit être au moins ${String(min).replace(".", ",")} mm.` };
   if (v > max) return { erreur: `La valeur doit être au plus ${max} mm.` };
   return { valeur: v };
+}
+
+// Un vide, pour les messages : taille puis position depuis le coin avant gauche.
+export function texteVide(r) {
+  const n = (v) => String(Math.round(v * 100) / 100).replace(".", ",");
+  return `${n(r.largeur)} × ${n(r.longueur)} mm en (${n(r.x)}, ${n(r.y)})`;
 }

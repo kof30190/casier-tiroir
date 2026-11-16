@@ -1,6 +1,6 @@
 {
  "version": 1,
- "consigne": "Ce fichier décrit un casier de tiroir fait de boîtes indépendantes, à imprimer en 3D une pièce à la fois.\nIl vient de l'appli « Casier de tiroir » ; tout est déjà calculé (jeu entre boîtes, découpes, tenons et fourches), il n'y a rien à recalculer.\nPour le construire avec SolidCraft (solidcraft-cli doit être installé) :\n1. Écrire la liste `script_solidcraft.commands` telle quelle dans un fichier script.json.\n2. Lancer `solidcraft-cli eval script.json` et comparer chaque corps à la liste `morceaux` : même nombre de corps, un corps par `nom`, fermé, dont la boîte englobante va de (x, y, 0) à (x + largeur, y + longueur, hauteur) à 0,01 mm près et dont le volume vaut `volume_mm3` à 0,01 % près. Si un écart apparaît, ne rien exporter et le signaler.\n3. Si tout concorde, ajouter les commandes `export_3mf` à la fin du script, puis lancer `solidcraft-cli run script.json --save casier.sc` dans le dossier du fichier : cela enregistre le modèle et écrit un fichier 3MF par morceau dans impression/ (créer ce dossier avant).\n4. Rendre compte : nombre de morceaux, plus grand morceau, et les éventuels écarts.\nLes morceaux d'une même boîte (B3-M1, B3-M2…) s'assemblent par enfourchement : le tenon du morceau de plus petit numéro entre dans la fourche du suivant.",
+ "consigne": "Ce fichier décrit un casier de tiroir fait de boîtes indépendantes, à imprimer en 3D une pièce à la fois.\nIl vient de l'appli « Casier de tiroir » ; tout est déjà calculé (jeu entre boîtes, découpes, tenons et fourches), il n'y a rien à recalculer.\nPour le construire avec SolidCraft (solidcraft-cli doit être installé ; avec le serveur MCP de SolidCraft, les mêmes commandes passent par l'outil batch) :\n1. Écrire la liste `script_solidcraft.commands` telle quelle dans un fichier script.json.\n2. Lancer `solidcraft-cli eval script.json --json-out mesures.json` et comparer chaque corps à la liste `morceaux` : même nombre de corps, un corps par `nom`, fermé, dont la boîte englobante va de (x, y, 0) à (x + largeur, y + longueur, hauteur) à 0,01 mm près, dont le volume vaut `volume_mm3` à 0,01 % près, et aucun plus grand que `tiroir.plateau` − 12 mm en X ou en Y (sinon il ne tiendrait pas sur le plateau). Si un écart apparaît, ne rien exporter et le signaler.\n3. Si tout concorde, créer un dossier impression/ à côté de ce fichier, ajouter à la fin de la liste de script.json les commandes du champ `export_3mf` de ce fichier, puis lancer `solidcraft-cli run script.json --save casier.sc` dans ce dossier : cela enregistre le modèle et écrit un fichier 3MF par morceau dans impression/.\n4. Rendre compte : nombre de morceaux, plus grand morceau, et les éventuels écarts.\nLes morceaux sont exportés à leur place dans le tiroir : le trancheur les recentre sur le plateau.\nLes morceaux d'une même boîte (B3-M1, B3-M2…) s'assemblent par enfourchement : le tenon du morceau de plus petit numéro entre dans la fourche du suivant.",
  "tiroir": {
   "largeur": 325,
   "longueur": 405,
@@ -122,19 +122,29 @@
    "x": 100.25,
    "y": 80.25,
    "largeur": 99.5,
-   "longueur": 172.375,
+   "longueur": 118.25,
    "hauteur": 60,
-   "volume_mm3": 144914.488
+   "volume_mm3": 104077.175
   },
   {
    "nom": "B4-M2",
    "boite": 4,
    "x": 100.25,
-   "y": 242.725,
+   "y": 188.6,
    "largeur": 99.5,
-   "longueur": 162.275,
+   "longueur": 118.15,
    "hauteur": 60,
-   "volume_mm3": 141197.688
+   "volume_mm3": 81038.925
+  },
+  {
+   "nom": "B4-M3",
+   "boite": 4,
+   "x": 100.25,
+   "y": 296.85,
+   "largeur": 99.5,
+   "longueur": 108.15,
+   "hauteur": 60,
+   "volume_mm3": 100360.375
   },
   {
    "nom": "B5-M1",
@@ -809,7 +819,7 @@
     "command": "solid.box",
     "params": {
      "length": 99.5,
-     "width": 162.275,
+     "width": 108.15,
      "height": 3,
      "corner": [
       100.25,
@@ -825,7 +835,7 @@
     "command": "solid.box",
     "params": {
      "length": 4,
-     "width": 162.275,
+     "width": 108.15,
      "height": 60,
      "corner": [
       100.25,
@@ -843,7 +853,7 @@
     "command": "solid.box",
     "params": {
      "length": 4,
-     "width": 162.275,
+     "width": 108.15,
      "height": 60,
      "corner": [
       195.75,
@@ -883,7 +893,7 @@
      "height": 60,
      "corner": [
       101.583,
-      241.525,
+      187.4,
       0
      ],
      "name": "B4-M1 5",
@@ -901,7 +911,7 @@
      "height": 60,
      "corner": [
       197.083,
-      241.525,
+      187.4,
       0
      ],
      "name": "B4-M1 6",
@@ -915,11 +925,11 @@
     "command": "solid.box",
     "params": {
      "length": 99.5,
-     "width": 162.275,
+     "width": 108.05,
      "height": 3,
      "corner": [
       100.25,
-      242.725,
+      188.6,
       0
      ],
      "name": "B4-M2 1",
@@ -931,11 +941,11 @@
     "command": "solid.box",
     "params": {
      "length": 4,
-     "width": 162.275,
+     "width": 108.05,
      "height": 60,
      "corner": [
       100.25,
-      242.725,
+      188.6,
       0
      ],
      "name": "B4-M2 2",
@@ -949,11 +959,11 @@
     "command": "solid.box",
     "params": {
      "length": 4,
-     "width": 162.275,
+     "width": 108.05,
      "height": 60,
      "corner": [
       195.75,
-      242.725,
+      188.6,
       0
      ],
      "name": "B4-M2 3",
@@ -966,15 +976,33 @@
    {
     "command": "solid.box",
     "params": {
-     "length": 99.5,
-     "width": 4,
+     "length": 1.333,
+     "width": 11.1,
      "height": 60,
      "corner": [
-      100.25,
-      401,
+      101.583,
+      295.65,
       0
      ],
      "name": "B4-M2 4",
+     "operation": "join",
+     "targets": [
+      "B4-M2"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 1.333,
+     "width": 11.1,
+     "height": 60,
+     "corner": [
+      197.083,
+      295.65,
+      0
+     ],
+     "name": "B4-M2 5",
      "operation": "join",
      "targets": [
       "B4-M2"
@@ -989,10 +1017,10 @@
      "height": 62,
      "corner": [
       101.383,
-      241.725,
+      187.6,
       -1
      ],
-     "name": "B4-M2 5",
+     "name": "B4-M2 6",
      "operation": "cut",
      "targets": [
       "B4-M2"
@@ -1007,13 +1035,119 @@
      "height": 62,
      "corner": [
       196.883,
-      241.725,
+      187.6,
       -1
      ],
-     "name": "B4-M2 6",
+     "name": "B4-M2 7",
      "operation": "cut",
      "targets": [
       "B4-M2"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 99.5,
+     "width": 108.15,
+     "height": 3,
+     "corner": [
+      100.25,
+      296.85,
+      0
+     ],
+     "name": "B4-M3 1",
+     "operation": "new",
+     "body_name": "B4-M3"
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 4,
+     "width": 108.15,
+     "height": 60,
+     "corner": [
+      100.25,
+      296.85,
+      0
+     ],
+     "name": "B4-M3 2",
+     "operation": "join",
+     "targets": [
+      "B4-M3"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 4,
+     "width": 108.15,
+     "height": 60,
+     "corner": [
+      195.75,
+      296.85,
+      0
+     ],
+     "name": "B4-M3 3",
+     "operation": "join",
+     "targets": [
+      "B4-M3"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 99.5,
+     "width": 4,
+     "height": 60,
+     "corner": [
+      100.25,
+      401,
+      0
+     ],
+     "name": "B4-M3 4",
+     "operation": "join",
+     "targets": [
+      "B4-M3"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 1.733,
+     "width": 11.1,
+     "height": 62,
+     "corner": [
+      101.383,
+      295.85,
+      -1
+     ],
+     "name": "B4-M3 5",
+     "operation": "cut",
+     "targets": [
+      "B4-M3"
+     ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 1.733,
+     "width": 11.1,
+     "height": 62,
+     "corner": [
+      196.883,
+      295.85,
+      -1
+     ],
+     "name": "B4-M3 6",
+     "operation": "cut",
+     "targets": [
+      "B4-M3"
      ]
     }
    },
@@ -1389,6 +1523,15 @@
     "path": "impression/B4-M2.3mf",
     "bodies": [
      "B4-M2"
+    ]
+   }
+  },
+  {
+   "command": "file.export",
+   "params": {
+    "path": "impression/B4-M3.3mf",
+    "bodies": [
+     "B4-M3"
     ]
    }
   },

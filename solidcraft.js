@@ -2,7 +2,7 @@
 // Une boîte plus longue que le plateau est coupée en morceaux égaux ; à chaque coupe, le morceau de
 // coordonnée basse porte un tenon (tiers central de chaque paroi traversée) et le suivant une fourche.
 
-import { controler } from "./logique.js";
+import { controler, lireCote, LIMITES_TIROIR } from "./logique.js";
 
 export const TENON = { longueur: 10, jeu: 0.2 };
 export const MARGE_PLATEAU = 12;
@@ -52,14 +52,16 @@ export function morceaux(plan) {
     const x2 = b.x + b.largeur - (b.x + b.largeur < t.largeur ? t.jeu / 2 : 0);
     const y1 = b.y + (b.y > 0 ? t.jeu / 2 : 0);
     const y2 = b.y + b.longueur - (b.y + b.longueur < t.longueur ? t.jeu / 2 : 0);
-    const nx = Math.max(1, Math.ceil((x2 - x1) / lim - 1e-9));
-    const ny = Math.max(1, Math.ceil((y2 - y1) / lim - 1e-9));
+    // un morceau coupé porte un tenon qui dépasse de d + g/2 : il doit tenir dans lim, tenon compris
+    const nombre = (cote) => (cote <= lim ? 1 : Math.ceil(cote / (lim - d - g / 2) - 1e-9));
+    const nx = nombre(x2 - x1);
+    const ny = nombre(y2 - y1);
     if (nx > 2 && ny > 2) {
       alertes.push({ boite: num, niveau: "bloquant", texte: `La boîte ${num} est trop grande dans les deux sens : coupez-la en boîtes plus petites.` });
       return;
     }
     if ((nx > 1 || ny > 1) && joue < JOUE_MIN) {
-      alertes.push({ boite: num, niveau: "avertissement", texte: `Boîte ${num} : les joues de l'assemblage ne feront que ${arrondi(joue)} mm, trop fragiles. Épaississez les parois.` });
+      alertes.push({ boite: num, niveau: "avertissement", texte: `Boîte ${num} : les joues de l'assemblage ne feront que ${String(Math.round(joue * 100) / 100).replace(".", ",")} mm, trop fragiles. Épaississez les parois.` });
     }
     const cx = Array.from({ length: nx + 1 }, (_, a) => x1 + (a * (x2 - x1)) / nx);
     const cy = Array.from({ length: ny + 1 }, (_, c) => y1 + (c * (y2 - y1)) / ny);
@@ -138,11 +140,12 @@ export function script(plan) {
 export const CONSIGNE = [
   "Ce fichier décrit un casier de tiroir fait de boîtes indépendantes, à imprimer en 3D une pièce à la fois.",
   "Il vient de l'appli « Casier de tiroir » ; tout est déjà calculé (jeu entre boîtes, découpes, tenons et fourches), il n'y a rien à recalculer.",
-  "Pour le construire avec SolidCraft (solidcraft-cli doit être installé) :",
+  "Pour le construire avec SolidCraft (solidcraft-cli doit être installé ; avec le serveur MCP de SolidCraft, les mêmes commandes passent par l'outil batch) :",
   "1. Écrire la liste `script_solidcraft.commands` telle quelle dans un fichier script.json.",
-  "2. Lancer `solidcraft-cli eval script.json` et comparer chaque corps à la liste `morceaux` : même nombre de corps, un corps par `nom`, fermé, dont la boîte englobante va de (x, y, 0) à (x + largeur, y + longueur, hauteur) à 0,01 mm près et dont le volume vaut `volume_mm3` à 0,01 % près. Si un écart apparaît, ne rien exporter et le signaler.",
-  "3. Si tout concorde, ajouter les commandes `export_3mf` à la fin du script, puis lancer `solidcraft-cli run script.json --save casier.sc` dans le dossier du fichier : cela enregistre le modèle et écrit un fichier 3MF par morceau dans impression/ (créer ce dossier avant).",
+  "2. Lancer `solidcraft-cli eval script.json --json-out mesures.json` et comparer chaque corps à la liste `morceaux` : même nombre de corps, un corps par `nom`, fermé, dont la boîte englobante va de (x, y, 0) à (x + largeur, y + longueur, hauteur) à 0,01 mm près, dont le volume vaut `volume_mm3` à 0,01 % près, et aucun plus grand que `tiroir.plateau` − 12 mm en X ou en Y (sinon il ne tiendrait pas sur le plateau). Si un écart apparaît, ne rien exporter et le signaler.",
+  "3. Si tout concorde, créer un dossier impression/ à côté de ce fichier, ajouter à la fin de la liste de script.json les commandes du champ `export_3mf` de ce fichier, puis lancer `solidcraft-cli run script.json --save casier.sc` dans ce dossier : cela enregistre le modèle et écrit un fichier 3MF par morceau dans impression/.",
   "4. Rendre compte : nombre de morceaux, plus grand morceau, et les éventuels écarts.",
+  "Les morceaux sont exportés à leur place dans le tiroir : le trancheur les recentre sur le plateau.",
   "Les morceaux d'une même boîte (B3-M1, B3-M2…) s'assemblent par enfourchement : le tenon du morceau de plus petit numéro entre dans la fourche du suivant.",
 ].join("\n");
 
@@ -171,11 +174,16 @@ export function lireFichier(texte) {
   } catch {
     return { erreur: "Ce fichier n'est pas un plan de casier (ce n'est pas du JSON)." };
   }
-  if (!d || typeof d !== "object" || !d.tiroir || !Array.isArray(d.boites)) return { erreur: "Ce fichier n'est pas un plan de casier." };
+  if (!d || typeof d !== "object" || !d.tiroir || typeof d.tiroir !== "object" || !Array.isArray(d.boites)) return { erreur: "Ce fichier n'est pas un plan de casier." };
   if (d.version !== 1) return { erreur: `Version de plan inconnue (${d.version}) : mettez l'appli à jour.` };
   const nombre = (v) => typeof v === "number" && Number.isFinite(v);
   if (!CHAMPS_TIROIR.every((c) => nombre(d.tiroir[c]))) return { erreur: "Les cotes du tiroir sont incomplètes." };
-  if (!d.boites.every((b) => ["x", "y", "largeur", "longueur"].every((c) => nombre(b[c])))) return { erreur: "Une boîte du fichier est incomplète." };
+  for (const c of CHAMPS_TIROIR) {
+    const lu = lireCote(String(d.tiroir[c]), { ...LIMITES_TIROIR[c], entier: false });
+    if (lu.erreur) return { erreur: `Cote « ${c} » du tiroir invalide : ${lu.erreur}` };
+  }
+  if (d.tiroir.hauteur <= d.tiroir.epaisseur_fond) return { erreur: "La hauteur du tiroir doit dépasser l'épaisseur du fond." };
+  if (!d.boites.every((b) => b && typeof b === "object" && ["x", "y", "largeur", "longueur"].every((c) => nombre(b[c])))) return { erreur: "Une boîte du fichier est incomplète." };
   const tiroir = Object.fromEntries(CHAMPS_TIROIR.map((c) => [c, d.tiroir[c]]));
   const boites = d.boites.map((b) => ({ x: b.x, y: b.y, largeur: b.largeur, longueur: b.longueur, auto: !!b.auto }));
   const plan = { version: 1, tiroir, boites };
