@@ -4,7 +4,7 @@ import {
   tailleMin, coller, rogner, zoneLibre, bande, couper, redimensionner, changerTiroir,
   remplir, controler, lireCote, contient, texteVide, LIMITES_TIROIR,
 } from "./logique.js";
-import { morceaux, fichier, lireFichier } from "./solidcraft.js";
+import { morceaux, fichier, lireFichier, nomFichier } from "./solidcraft.js";
 
 const CLE = "casier-tiroir-plan";
 const TIROIR_DEFAUT = { largeur: 325, longueur: 405, hauteur: 60, epaisseur: 4, epaisseur_fond: 3, jeu: 0.5, plateau: 180 };
@@ -123,7 +123,7 @@ function rectSvg(r, classe, parent) {
 }
 
 function texte(contenu, x, y, taille, classe, parent) {
-  const n = el("text", { x, y: versEcranY(y), "font-size": taille, class: classe }, parent);
+  const n = el("text", { x, y: versEcranY(y), "font-size": taille, "stroke-width": taille * 0.35, class: classe }, parent);
   n.textContent = contenu;
   return n;
 }
@@ -162,22 +162,23 @@ function dessiner() {
     const nb = pieces.filter((q) => q.boite === p.boite).length;
     if (nb > 1) rectSvg(p.ops[0].r, "morceau", svg);
   }
-  toutes.forEach(({ b }, k) => {
+  toutes.forEach(({ b, apercu: ap }, k) => {
     const n = k + 1;
+    const fond = b.auto || ap ? " sur-auto" : "";
     const cote = Math.min(b.largeur, b.longueur);
     const taille = Math.max(Math.min(cote / 5, 14), 3.5);
     const cx = b.x + b.largeur / 2;
     const cy = b.y + b.longueur / 2;
-    texte(`${mm(b.largeur)} × ${mm(b.longueur)}`, cx, cy, taille, "cote", svg);
+    texte(`${mm(b.largeur)} × ${mm(b.longueur)}`, cx, cy, taille, `cote${fond}`, svg);
     const nb = pieces.filter((q) => q.boite === n).length;
     const sous = nb > 1 ? `n° ${n} · ${nb} morceaux` : `n° ${n}`;
-    if (cote > 30) texte(sous, cx, cy - taille * 1.3, taille * 0.7, "cote petite", svg);
+    if (cote > 30) texte(sous, cx, cy - taille * 1.3, taille * 0.7, `cote petite${fond}`, svg);
   });
   for (const r of etroits) rectSvg(r, "etroit", svg);
 
   if (selection?.type === "zone") rectSvg(selection.rect, "zone", svg);
   if (geste?.type === "trace" && geste.rect) {
-    rectSvg(geste.rect, "trace", svg);
+    rectSvg(geste.rect, geste.valide ? "trace" : "trace invalide", svg);
     texte(`${mm(geste.rect.largeur)} × ${mm(geste.rect.longueur)}`, geste.rect.x + geste.rect.largeur / 2,
       geste.rect.y + geste.rect.longueur / 2, Math.max(Math.min(Math.min(geste.rect.largeur, geste.rect.longueur) / 5, 14), 4), "cote", svg);
   }
@@ -220,8 +221,9 @@ function bouton(libelle, action, classe = "") {
   return b;
 }
 
-function champ(valeur, largeur = 70) {
+function champ(valeur, libelle, largeur = 70) {
   const i = document.createElement("input");
+  i.setAttribute("aria-label", libelle);
   i.value = String(valeur).replace(".", ",");
   i.inputMode = "decimal";
   i.style.width = `${largeur}px`;
@@ -235,8 +237,9 @@ function ligne(...enfants) {
   return d;
 }
 
-function choix(options) {
+function choix(options, libelle) {
   const s = document.createElement("select");
+  s.setAttribute("aria-label", libelle);
   for (const [v, l] of options) s.append(new Option(l, v));
   return s;
 }
@@ -248,8 +251,8 @@ function panneauOutil() {
     const r = selection.rect;
     const h = document.createElement("h3");
     h.textContent = `Zone libre ${mm(r.largeur)} × ${mm(r.longueur)} mm`;
-    const sorte = choix([["colonne:gauche", "Colonne à gauche"], ["colonne:droite", "Colonne à droite"], ["rangee:bas", "Rangée devant (en bas)"], ["rangee:haut", "Rangée au fond (en haut)"]]);
-    const cote = champ(100);
+    const sorte = choix([["colonne:gauche", "Colonne à gauche"], ["colonne:droite", "Colonne à droite"], ["rangee:bas", "Rangée devant (en bas)"], ["rangee:haut", "Rangée au fond (en haut)"]], "Sorte de bande");
+    const cote = champ(100, "Cote de la bande en millimètres");
     const ajouter = () => {
       const [sens, cote_] = sorte.value.split(":");
       const lu = lireCote(cote.value, { min: tailleMin(plan.tiroir), entier: true });
@@ -262,7 +265,21 @@ function panneauOutil() {
       Object.assign(document.createElement("p"), { textContent: "La bande ne prend que la place libre de cette zone." }));
     return;
   }
-  if (selection?.type !== "boite") return;
+  if (selection?.type !== "boite") {
+    const libres = remplir(plan.boites, plan.tiroir).ajoutees;
+    if (!libres.length) return;
+    const h = document.createElement("h3");
+    h.textContent = "Ajouter des boîtes";
+    zone.append(h,
+      Object.assign(document.createElement("p"), { textContent: "Glissez sur le plan, ou choisissez une zone libre pour y poser une colonne ou une rangée." }),
+      ligne(bouton("Choisir la plus grande zone libre", () => {
+        const plus = libres.reduce((a, b) => (b.largeur * b.longueur > a.largeur * a.longueur ? b : a));
+        selection = { type: "zone", rect: zoneLibre({ x: plus.x + 0.5, y: plus.y + 0.5 }, plan.boites, plan.tiroir) };
+        tout();
+        $("#outil select")?.focus();
+      })));
+    return;
+  }
   const k = selection.index;
   const b = plan.boites[k];
   if (!b) return;
@@ -270,8 +287,8 @@ function panneauOutil() {
   const nb = pieces.filter((p) => p.boite === k + 1).length;
   const h = document.createElement("h3");
   h.textContent = `Boîte n° ${k + 1}${b.auto ? " (ajoutée)" : ""}`;
-  const larg = champ(b.largeur);
-  const long = champ(b.longueur);
+  const larg = champ(b.largeur, "Largeur de la boîte en millimètres");
+  const long = champ(b.longueur, "Longueur de la boîte en millimètres");
   const appliquerTaille = () => {
     let boites = plan.boites;
     for (const [entree, bord, depart] of [[larg, "droite", b.x], [long, "haut", b.y]]) {
@@ -284,8 +301,8 @@ function panneauOutil() {
     changer({ ...plan, boites: boites.map((x, i) => (i === k ? { ...x, auto: false } : x)) });
     message("");
   };
-  const parts = champ(2, 50);
-  const premiere = champ(100);
+  const parts = champ(2, "Nombre de parts", 50);
+  const premiere = champ(100, "Longueur de la première boîte en millimètres");
   const decouper = (axe, choixCoupe) => {
     const res = couper(b, axe, choixCoupe, plan.tiroir);
     if (res.erreur) return message(res.erreur, "erreur");
@@ -327,9 +344,14 @@ function panneauListe() {
     if (selection?.type === "boite" && selection.index === k) li.classList.add("choisie");
     const nb = pieces.filter((p) => p.boite === k + 1).length;
     const bloque = alertes.some((a) => a.boite === k + 1 && a.niveau === "bloquant");
-    li.innerHTML = `<span><span class="num">${k + 1}</span> ${mm(b.largeur)} × ${mm(b.longueur)} mm</span>`
+    const choisir = document.createElement("button");
+    choisir.type = "button";
+    choisir.className = "ligne-boite";
+    choisir.setAttribute("aria-pressed", String(selection?.type === "boite" && selection.index === k));
+    choisir.innerHTML = `<span><span class="num">${k + 1}</span> ${mm(b.largeur)} × ${mm(b.longueur)} mm</span>`
       + `<small class="${bloque ? "bloquant" : ""}">${bloque ? "trop grande" : nb > 1 ? `${nb} morceaux` : "1 pièce"}</small>`;
-    li.addEventListener("click", () => {
+    li.append(choisir);
+    choisir.addEventListener("click", () => {
       selection = { type: "boite", index: k };
       tout();
     });
@@ -361,7 +383,21 @@ function ajouterBoite(r, tol) {
 }
 
 function supprimer() {
-  if (selection?.type !== "boite") return;
+  if (selection?.type !== "boite") {
+    const libres = remplir(plan.boites, plan.tiroir).ajoutees;
+    if (!libres.length) return;
+    const h = document.createElement("h3");
+    h.textContent = "Ajouter des boîtes";
+    zone.append(h,
+      Object.assign(document.createElement("p"), { textContent: "Glissez sur le plan, ou choisissez une zone libre pour y poser une colonne ou une rangée." }),
+      ligne(bouton("Choisir la plus grande zone libre", () => {
+        const plus = libres.reduce((a, b) => (b.largeur * b.longueur > a.largeur * a.longueur ? b : a));
+        selection = { type: "zone", rect: zoneLibre({ x: plus.x + 0.5, y: plus.y + 0.5 }, plan.boites, plan.tiroir) };
+        tout();
+        $("#outil select")?.focus();
+      })));
+    return;
+  }
   const k = selection.index;
   selection = null;
   changer({ ...plan, boites: plan.boites.filter((_, i) => i !== k) });
@@ -426,7 +462,7 @@ function valider() {
   $("#confirmer-texte").textContent = (ajoutees.length
     ? `${ajoutees.length} boîte${ajoutees.length > 1 ? "s ont été ajoutées" : " a été ajoutée"} pour combler les vides (en bleu). `
     : "Le tiroir est entièrement couvert. ")
-    + `Le casier compte ${complet.boites.length} boîtes, soit ${nbPieces} pièce${nbPieces > 1 ? "s" : ""} à imprimer. `
+    + `Le casier compte ${complet.boites.length} boîte${complet.boites.length > 1 ? "s" : ""}, soit ${nbPieces} pièce${nbPieces > 1 ? "s" : ""} à imprimer. `
     + "Le fichier téléchargé contient tout ce qu'il faut pour construire les pièces dans SolidCraft."
     + (avertissements.length ? ` Attention : ${avertissements.join(" ")}` : "");
   const dlg = $("#confirmer");
@@ -459,10 +495,9 @@ function regrouper(alertes) {
 
 function telecharger(p) {
   const contenu = JSON.stringify(fichier(p), null, 1);
-  const date = new Date().toISOString().slice(0, 10);
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([contenu], { type: "application/json" }));
-  a.download = `casier-${date}.json`;
+  a.download = nomFichier();
   document.body.append(a);
   a.click();
   a.remove();
@@ -614,6 +649,7 @@ $("#annuler").addEventListener("click", annuler);
 $("#retablir").addEventListener("click", retablir);
 $("#valider").addEventListener("click", valider);
 $("#ouvrir").addEventListener("change", ouvrir);
+$("#bouton-ouvrir").addEventListener("click", () => $("#ouvrir").click());
 $("#vider").addEventListener("click", () => {
   if (!plan.boites.length) return;
   selection = null;

@@ -87,9 +87,12 @@ input.invalide { border-color: var(--alerte); }
 .boite.bloquant { stroke: var(--alerte); stroke-width: 2; }
 .boite.avert { stroke: var(--avert); stroke-width: 1.6; }
 .morceau { fill: none; stroke: var(--texte); stroke-width: 0.5; stroke-dasharray: 2 1.5; pointer-events: none; opacity: 0.7; }
-.cote { fill: var(--texte); text-anchor: middle; dominant-baseline: central; pointer-events: none; font-weight: 600; }
+.cote { fill: var(--texte); text-anchor: middle; dominant-baseline: central; pointer-events: none; font-weight: 600;
+  paint-order: stroke; stroke: var(--boite); stroke-linejoin: round; }
+.cote.sur-auto { stroke: var(--auto); }
 .cote.petite { font-weight: 400; fill: var(--discret); }
 .trace { fill: var(--accent); fill-opacity: 0.25; stroke: var(--accent); stroke-width: 1; pointer-events: none; }
+.trace.invalide { fill: var(--alerte); stroke: var(--alerte); stroke-dasharray: 3 2; }
 .zone { fill: var(--zone); fill-opacity: 0.12; stroke: var(--zone); stroke-width: 1.2; stroke-dasharray: 4 2; pointer-events: none; }
 .etroit { fill: var(--alerte); fill-opacity: 0.35; stroke: var(--alerte); stroke-width: 1; pointer-events: none; }
 .poignee { fill: var(--accent); stroke: var(--surface); stroke-width: 0.6; }
@@ -107,9 +110,11 @@ input.invalide { border-color: var(--alerte); }
 #outil .alerte { color: var(--alerte); }
 #outil .avert { color: var(--avert); }
 #liste { list-style: none; padding: 0; margin: 0; }
-#liste li { display: flex; justify-content: space-between; gap: 8px; padding: 6px 8px; border-radius: 8px; cursor: pointer; border: 1px solid transparent; }
-#liste li:hover { border-color: var(--ligne); }
-#liste li.choisie { border-color: var(--accent); }
+#liste li { margin: 2px 0; }
+#liste .ligne-boite { display: flex; width: 100%; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 8px; text-align: left; border-color: transparent; background: transparent; }
+#liste .ligne-boite:hover { border-color: var(--ligne); }
+#liste li.choisie .ligne-boite { border-color: var(--accent); }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 #liste li .num { display: inline-block; min-width: 26px; height: 22px; text-align: center; border-radius: 6px; background: var(--boite); color: var(--texte); font-size: 13px; line-height: 22px; }
 #liste li.auto .num { background: var(--auto); }
 #liste li small { color: var(--discret); }
