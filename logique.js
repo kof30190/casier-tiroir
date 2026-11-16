@@ -1,6 +1,187 @@
 // Règles du plan de boîtes : tout est en millimètres, repère au coin avant gauche du tiroir
 // (X = largeur, Y = longueur). Fonctions pures, testées dans tests/logique.test.mjs.
 
+export const COLLAGE_MM = 5;
+
 export function tailleMin(tiroir) {
   return 2 * tiroir.epaisseur + 10;
+}
+
+const droite = (r) => r.x + r.largeur;
+const haut = (r) => r.y + r.longueur;
+const rect = (x1, y1, x2, y2) => ({ x: x1, y: y1, largeur: x2 - x1, longueur: y2 - y1 });
+
+export function seChevauchent(a, b) {
+  return a.x < droite(b) && b.x < droite(a) && a.y < haut(b) && b.y < haut(a);
+}
+
+export function contient(r, p) {
+  return p.x >= r.x && p.x < droite(r) && p.y >= r.y && p.y < haut(r);
+}
+
+function bords(boites, tiroir, axe) {
+  const out = axe === "x" ? [0, tiroir.largeur] : [0, tiroir.longueur];
+  for (const b of boites) out.push(...(axe === "x" ? [b.x, droite(b)] : [b.y, haut(b)]));
+  return out;
+}
+
+function aimanter(valeur, candidats, tol) {
+  let meilleur = valeur;
+  let ecart = tol + 1;
+  for (const c of candidats) {
+    const d = Math.abs(c - valeur);
+    if (d <= tol && d < ecart) {
+      meilleur = c;
+      ecart = d;
+    }
+  }
+  return meilleur;
+}
+
+// Colle chaque bord du rectangle au bord du tiroir ou d'une boîte le plus proche, à `tol` mm près.
+export function coller(r, boites, tiroir, tol = COLLAGE_MM) {
+  const bx = bords(boites, tiroir, "x");
+  const by = bords(boites, tiroir, "y");
+  const x1 = aimanter(Math.round(r.x), bx, tol);
+  const x2 = aimanter(Math.round(droite(r)), bx, tol);
+  const y1 = aimanter(Math.round(r.y), by, tol);
+  const y2 = aimanter(Math.round(haut(r)), by, tol);
+  return rect(x1, y1, x2, y2);
+}
+
+// Ramène un tracé dans le tiroir et le raccourcit pour qu'il ne morde aucune boîte, en gardant
+// le coin de départ `ancre`. Rend null si le départ est dans une boîte ou si le reste est trop petit.
+export function rogner(r, ancre, boites, tiroir) {
+  if (boites.some((b) => contient(b, ancre))) return null;
+  let x1 = Math.max(0, r.x);
+  let y1 = Math.max(0, r.y);
+  let x2 = Math.min(tiroir.largeur, droite(r));
+  let y2 = Math.min(tiroir.longueur, haut(r));
+  for (let tour = 0; tour < boites.length + 1; tour++) {
+    const gene = boites.find((b) => seChevauchent(b, rect(x1, y1, x2, y2)));
+    if (!gene) break;
+    const options = [];
+    if (gene.x >= ancre.x) options.push([x1, y1, Math.min(x2, gene.x), y2]);
+    if (droite(gene) <= ancre.x) options.push([Math.max(x1, droite(gene)), y1, x2, y2]);
+    if (gene.y >= ancre.y) options.push([x1, y1, x2, Math.min(y2, gene.y)]);
+    if (haut(gene) <= ancre.y) options.push([x1, Math.max(y1, haut(gene)), x2, y2]);
+    if (!options.length) return null;
+    options.sort((a, b) => (b[2] - b[0]) * (b[3] - b[1]) - (a[2] - a[0]) * (a[3] - a[1]));
+    [x1, y1, x2, y2] = options[0];
+  }
+  const out = rect(x1, y1, x2, y2);
+  if (boites.some((b) => seChevauchent(b, out))) return null;
+  const min = tailleMin(tiroir);
+  return out.largeur >= min && out.longueur >= min ? out : null;
+}
+
+// Grille des cellules délimitées par tous les bords, avec l'occupation de chaque cellule.
+export function grille(boites, tiroir) {
+  const xs = [...new Set(bords(boites, tiroir, "x").filter((v) => v >= 0 && v <= tiroir.largeur))].sort((a, b) => a - b);
+  const ys = [...new Set(bords(boites, tiroir, "y").filter((v) => v >= 0 && v <= tiroir.longueur))].sort((a, b) => a - b);
+  const occupe = xs.slice(0, -1).map((x, i) =>
+    ys.slice(0, -1).map((y, j) => {
+      const centre = { x: (x + xs[i + 1]) / 2, y: (y + ys[j + 1]) / 2 };
+      return boites.some((b) => contient(b, centre));
+    }));
+  return { xs, ys, occupe };
+}
+
+// Le plus grand rectangle libre qui contient le point, ou null si le point est dans une boîte.
+export function zoneLibre(point, boites, tiroir) {
+  if (point.x < 0 || point.y < 0 || point.x >= tiroir.largeur || point.y >= tiroir.longueur) return null;
+  if (boites.some((b) => contient(b, point))) return null;
+  const { xs, ys, occupe } = grille(boites, tiroir);
+  const ci = xs.findIndex((x, i) => i < xs.length - 1 && point.x >= x && point.x < xs[i + 1]);
+  const cj = ys.findIndex((y, j) => j < ys.length - 1 && point.y >= y && point.y < ys[j + 1]);
+  const libre = (i1, i2, j1, j2) => {
+    for (let i = i1; i <= i2; i++) for (let j = j1; j <= j2; j++) if (occupe[i][j]) return false;
+    return true;
+  };
+  let best = null;
+  for (let i1 = ci; i1 >= 0; i1--) {
+    if (!libre(i1, ci, cj, cj)) break;
+    for (let i2 = ci; i2 < xs.length - 1; i2++) {
+      if (!libre(i1, i2, cj, cj)) break;
+      let j1 = cj;
+      while (j1 > 0 && libre(i1, i2, j1 - 1, j1 - 1)) j1--;
+      let j2 = cj;
+      while (j2 < ys.length - 2 && libre(i1, i2, j2 + 1, j2 + 1)) j2++;
+      const r = rect(xs[i1], ys[j1], xs[i2 + 1], ys[j2 + 1]);
+      if (!best || r.largeur * r.longueur > best.largeur * best.longueur) best = r;
+    }
+  }
+  return best;
+}
+
+// Une bande de `mm` contre un côté de la zone : colonne (gauche/droite) ou rangée (bas/haut).
+export function bande(zone, sens, cote, mm) {
+  if (sens === "colonne") {
+    const l = Math.min(mm, zone.largeur);
+    const x = cote === "droite" ? droite(zone) - l : zone.x;
+    return { x, y: zone.y, largeur: l, longueur: zone.longueur };
+  }
+  const l = Math.min(mm, zone.longueur);
+  const y = cote === "haut" ? haut(zone) - l : zone.y;
+  return { x: zone.x, y, largeur: zone.largeur, longueur: l };
+}
+
+// Coupe une boîte le long de X ("x" : boîtes côte à côte) ou de Y ("y" : boîtes l'une après l'autre),
+// en `parts` égales (le reste va à la dernière) ou en une `premiere` de N mm puis le reste.
+export function couper(boite, axe, choix, tiroir) {
+  const total = axe === "x" ? boite.largeur : boite.longueur;
+  let tailles;
+  if (choix.premiere !== undefined) {
+    tailles = [Math.round(choix.premiere), total - Math.round(choix.premiere)];
+  } else {
+    const n = Math.max(2, Math.round(choix.parts));
+    const base = Math.floor(total / n);
+    tailles = Array.from({ length: n }, (_, k) => (k === n - 1 ? total - base * (n - 1) : base));
+  }
+  const min = tailleMin(tiroir);
+  if (tailles.some((t) => t < min)) return { erreur: `Chaque part doit faire au moins ${min} mm.` };
+  let pos = axe === "x" ? boite.x : boite.y;
+  return tailles.map((t) => {
+    const part = axe === "x" ? { ...boite, x: pos, largeur: t } : { ...boite, y: pos, longueur: t };
+    pos += t;
+    return { ...part, auto: false };
+  });
+}
+
+// Déplace un bord d'une boîte à la coordonnée `valeur` (collée aux bords proches).
+export function redimensionner(boites, index, bord, valeur, tiroir) {
+  const b = boites[index];
+  const autres = boites.filter((_, k) => k !== index);
+  const axe = bord === "gauche" || bord === "droite" ? "x" : "y";
+  const v = aimanter(Math.round(valeur), bords(autres, tiroir, axe), COLLAGE_MM);
+  let [x1, y1, x2, y2] = [b.x, b.y, droite(b), haut(b)];
+  if (bord === "gauche") x1 = v;
+  if (bord === "droite") x2 = v;
+  if (bord === "bas") y1 = v;
+  if (bord === "haut") y2 = v;
+  const r = rect(x1, y1, x2, y2);
+  const min = tailleMin(tiroir);
+  if (r.largeur < min || r.longueur < min) return { erreur: `Une boîte fait au moins ${min} mm de côté.` };
+  if (x1 < 0 || y1 < 0 || x2 > tiroir.largeur || y2 > tiroir.longueur) return { erreur: "La boîte sortirait du tiroir." };
+  if (autres.some((o) => seChevauchent(o, r))) return { erreur: "La boîte mordrait sur une voisine." };
+  return boites.map((o, k) => (k === index ? { ...o, ...r } : o));
+}
+
+// Applique de nouvelles cotes de tiroir : les boîtes collées au bord droit ou haut le suivent,
+// celles qui dépassent sont rognées, celles qui sortent ou deviennent trop petites sont retirées.
+export function changerTiroir(plan, nouveau) {
+  const ancien = plan.tiroir;
+  const min = tailleMin(nouveau);
+  const messages = [];
+  const boites = [];
+  plan.boites.forEach((b, k) => {
+    let x2 = droite(b) === ancien.largeur ? nouveau.largeur : Math.min(droite(b), nouveau.largeur);
+    let y2 = haut(b) === ancien.longueur ? nouveau.longueur : Math.min(haut(b), nouveau.longueur);
+    if (x2 - b.x < min || y2 - b.y < min) {
+      messages.push(`Boîte ${k + 1} retirée : elle ne tient plus dans le tiroir.`);
+      return;
+    }
+    boites.push({ ...b, ...rect(b.x, b.y, x2, y2) });
+  });
+  return { plan: { ...plan, tiroir: nouveau, boites }, messages };
 }
