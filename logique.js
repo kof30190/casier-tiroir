@@ -185,3 +185,67 @@ export function changerTiroir(plan, nouveau) {
   });
   return { plan: { ...plan, tiroir: nouveau, boites }, messages };
 }
+
+// Rectangles qui couvrent tout l'espace libre, le moins nombreux possible (choix glouton : pour chaque
+// cellule libre, on étend d'abord en X ou d'abord en Y et on garde le plus grand). Ceux dont un côté est
+// sous la taille minimale ne deviennent pas des boîtes : ils sont rendus dans `trop_etroits`.
+export function remplir(boites, tiroir) {
+  const { xs, ys, occupe } = grille(boites, tiroir);
+  const pris = occupe.map((col) => col.slice());
+  const ni = xs.length - 1;
+  const nj = ys.length - 1;
+  const libre = (i1, i2, j1, j2) => {
+    for (let i = i1; i <= i2; i++) for (let j = j1; j <= j2; j++) if (pris[i][j]) return false;
+    return true;
+  };
+  const rects = [];
+  for (let j = 0; j < nj; j++) {
+    for (let i = 0; i < ni; i++) {
+      if (pris[i][j]) continue;
+      const variantes = [];
+      // d'abord en X, puis en Y
+      let i2 = i;
+      while (i2 + 1 < ni && libre(i2 + 1, i2 + 1, j, j)) i2++;
+      let j2 = j;
+      while (j2 + 1 < nj && libre(i, i2, j2 + 1, j2 + 1)) j2++;
+      variantes.push([i2, j2]);
+      // d'abord en Y, puis en X
+      let jb = j;
+      while (jb + 1 < nj && libre(i, i, jb + 1, jb + 1)) jb++;
+      let ib = i;
+      while (ib + 1 < ni && libre(ib + 1, ib + 1, j, jb)) ib++;
+      variantes.push([ib, jb]);
+      const aire = ([a, b]) => (xs[a + 1] - xs[i]) * (ys[b + 1] - ys[j]);
+      const [fi, fj] = aire(variantes[0]) >= aire(variantes[1]) ? variantes[0] : variantes[1];
+      for (let a = i; a <= fi; a++) for (let b = j; b <= fj; b++) pris[a][b] = true;
+      rects.push(rect(xs[i], ys[j], xs[fi + 1], ys[fj + 1]));
+    }
+  }
+  const min = tailleMin(tiroir);
+  const ajoutees = [];
+  const trop_etroits = [];
+  for (const r of rects) {
+    if (r.largeur >= min && r.longueur >= min) ajoutees.push({ ...r, auto: true });
+    else trop_etroits.push(r);
+  }
+  return { ajoutees, trop_etroits };
+}
+
+// Messages sur ce qui empêche de construire le plan ; liste vide = plan correct.
+export function controler(plan) {
+  const { tiroir, boites } = plan;
+  const min = tailleMin(tiroir);
+  const messages = [];
+  boites.forEach((b, k) => {
+    if (b.x < 0 || b.y < 0 || droite(b) > tiroir.largeur || haut(b) > tiroir.longueur) messages.push(`La boîte ${k + 1} sort du tiroir.`);
+    if (b.largeur < min || b.longueur < min) messages.push(`La boîte ${k + 1} est trop petite (${min} mm au moins de côté).`);
+    for (let m = k + 1; m < boites.length; m++) {
+      if (seChevauchent(b, boites[m])) messages.push(`Les boîtes ${k + 1} et ${m + 1} se chevauchent.`);
+    }
+  });
+  const { ajoutees, trop_etroits } = remplir(boites, tiroir);
+  for (const r of [...ajoutees, ...trop_etroits]) {
+    messages.push(`Il reste un vide de ${r.largeur} × ${r.longueur} mm en (${r.x}, ${r.y}).`);
+  }
+  return messages;
+}
