@@ -1,7 +1,7 @@
 """Construit un fichier de l'appli dans solidcraft-cli et contrôle chaque corps.
 
 Deux références : les `morceaux` annoncés par le fichier, et un calcul refait ici à partir du seul plan
-(règles de la description : jeu, découpe en morceaux égaux, tenon et fourche), sans lire le code de la page.
+(règles de la description : jeu, découpe en morceaux égaux, tenon et fourche, arrondis intérieurs), sans lire le code de la page.
 Usage : python3 tests/verif_solidcraft.py tests/plans/croquis.json [...]
 """
 import bisect
@@ -12,7 +12,56 @@ import subprocess
 import sys
 import tempfile
 
-TENON, JEU_T, MARGE = 10.0, 0.2, 12.0
+TENON, JEU_T, MARGE, ARRONDI = 10.0, 0.2, 12.0, 2.0
+
+
+def section_arrondi(r, ua, ub, n=4000):
+    """Matière d'un arrondi convexe de rayon r entre ua et ub de la face intérieure (intégration numérique)."""
+    a, b = max(0.0, ua), min(r, ub)
+    if b <= a:
+        return 0.0
+    du = (b - a) / n
+    return sum((r - math.sqrt(r * r - (r - (a + (i + 0.5) * du)) ** 2)) * du for i in range(n))
+
+
+def arrondis(piece, boite, coupes, t):
+    """Matière ajoutée (congés du fond et des coins) moins retirée (arête du haut, dessus des tenons taillé),
+    plus ce que la fourche retire dans l'arrondi déjà enlevé."""
+    (bx1, by1, bx2, by2) = piece
+    (x1, y1, x2, y2) = boite
+    cuts_x, cuts_y = coupes
+    e, f, H, g, d = t["epaisseur"], t["epaisseur_fond"], t["hauteur"], JEU_T, TENON
+    tt = e / 3
+    rb = min(ARRONDI, (H - f) / 2)
+    rh = min(ARRONDI, e / 2, (H - f) / 2)
+    eps = 1e-9
+    px2 = min([x2] + [c - g / 2 for c in cuts_x if c - g / 2 > bx1 + eps])
+    py2 = min([y2] + [c - g / 2 for c in cuts_y if c - g / 2 > by1 + eps])
+    px1, py1 = bx1, by1
+    G, D, AV, AR = abs(px1 - x1) < eps, abs(px2 - x2) < eps, abs(py1 - y1) < eps, abs(py2 - y2) < eps
+    ix1, ix2, iy1, iy2 = px1 + e * G, px2 - e * D, py1 + e * AV, py2 - e * AR
+    kb, kh = (1 - math.pi / 4) * rb * rb, (1 - math.pi / 4) * rh * rh
+    v = 0.0
+    for present, L, nc in ((G, iy2 - iy1, AV + AR), (D, iy2 - iy1, AV + AR), (AV, ix2 - ix1, G + D), (AR, ix2 - ix1, G + D)):
+        if present:
+            v += (kb - kh) * (L - rb * nc)
+    cg = (10 - 3 * math.pi) / (3 * (4 - math.pi)) * rh
+    for coin in ((G and AV), (D and AV), (G and AR), (D and AR)):
+        if coin:
+            v += kb * (H - f - rb) + (1 - math.pi / 6) * rb ** 3 - kh * (math.pi / 2) * (rb + cg)
+    tenon = section_arrondi(rh, e / 2 - tt / 2, e / 2 + tt / 2) * (d + g / 2)
+    fourche = section_arrondi(rh, e / 2 - tt / 2 - g, e / 2 + tt / 2 + g) * (d + g / 2)
+    for c in cuts_y:
+        if abs(py2 - (c - g / 2)) < eps:
+            v -= tenon * (G + D)
+        if abs(py1 - (c + g / 2)) < eps:
+            v += fourche * (G + D)
+    for c in cuts_x:
+        if abs(px2 - (c - g / 2)) < eps:
+            v -= tenon * (AV + AR)
+        if abs(px1 - (c + g / 2)) < eps:
+            v += fourche * (AV + AR)
+    return v
 
 
 def pieces_attendues(plan):
@@ -48,7 +97,7 @@ def pieces_attendues(plan):
                 ops.append(("sub", "fw", (c + g / 2, m - tt / 2 - g, c + d + g, m + tt / 2 + g)))
                 ops.append(("add", "fw", (c - g / 2, m - tt / 2, c + d, m + tt / 2)))
         for k, (bx, vol) in enumerate(sorted(composantes(ops, f, H), key=lambda c: (round(c[0][1], 3), round(c[0][0], 3))), 1):
-            out[f"B{n}-M{k}"] = (bx, vol)
+            out[f"B{n}-M{k}"] = (bx, vol + arrondis(bx, (x1, y1, x2, y2), (cuts_x, cuts_y), t))
     return out, H
 
 
@@ -91,11 +140,18 @@ def verifier(chemin):
         s = os.path.join(tmp, "script.json")
         json.dump(doc["script_solidcraft"]["commands"], open(s, "w"))
         r = subprocess.run(["solidcraft-cli", "eval", s], capture_output=True, text=True, timeout=1200)
+        # les morceaux voisins, à leur place dans le tiroir, ne doivent pas se toucher : jeu, tenons et fourches
+        si = os.path.join(tmp, "interference.json")
+        json.dump(doc["script_solidcraft"]["commands"] + [{"command": "inspect.interference", "params": {}}], open(si, "w"))
+        ri = subprocess.run(["solidcraft-cli", "run", si, "--results", "--quiet"], capture_output=True, text=True, timeout=1200)
     res = json.loads(r.stdout)
+    inter = json.loads(ri.stdout)[-1] if ri.returncode == 0 else {"count": None, "pairs_not_checked": None}
     corps = {b["name"]: b for b in res["bodies"]}
     annonces = {m["nom"]: m for m in doc["morceaux"]}
     attendus, H = pieces_attendues(doc)
     ecarts = [f"fonction en erreur : {t['name']}" for t in res.get("timeline", []) if t.get("error")]
+    if inter.get("count") != 0 or inter.get("pairs_not_checked") != 0:
+        ecarts.append(f"interférence entre morceaux : {inter.get('interferences', ri.stderr[-300:])}")
     if set(corps) != set(annonces) or set(corps) != set(attendus):
         ecarts.append(f"noms : solidcraft {sorted(corps)} / fichier {sorted(annonces)} / calcul {sorted(attendus)}")
     plus_grand = 0

@@ -1,6 +1,6 @@
 {
  "version": 1,
- "consigne": "Ce fichier décrit un casier de tiroir fait de boîtes indépendantes, à imprimer en 3D une pièce à la fois.\nIl vient de l'appli « Casier de tiroir » ; tout est déjà calculé (jeu entre boîtes, découpes, tenons et fourches), il n'y a rien à recalculer.\nPour le construire avec SolidCraft (solidcraft-cli doit être installé ; avec le serveur MCP de SolidCraft, les mêmes commandes passent par l'outil batch) :\n1. Écrire la liste `script_solidcraft.commands` telle quelle dans un fichier script.json.\n2. Lancer `solidcraft-cli eval script.json --json-out mesures.json` et comparer chaque corps à la liste `morceaux` : même nombre de corps, un corps par `nom`, fermé, dont la boîte englobante va de (x, y, 0) à (x + largeur, y + longueur, hauteur) à 0,01 mm près, dont le volume vaut `volume_mm3` à 0,01 % près, et aucun plus grand que `tiroir.plateau` − 12 mm en X ou en Y (sinon il ne tiendrait pas sur le plateau). Si un écart apparaît, ne rien exporter et le signaler.\n3. Si tout concorde, créer un dossier impression/ à côté de ce fichier, ajouter à la fin de la liste de script.json les commandes du champ `export_3mf` de ce fichier, puis lancer `solidcraft-cli run script.json --save casier.sc` dans ce dossier : cela enregistre le modèle et écrit un fichier 3MF par morceau dans impression/.\n4. Rendre compte : nombre de morceaux, plus grand morceau, et les éventuels écarts.\nLes morceaux sont exportés à leur place dans le tiroir : le trancheur les recentre sur le plateau.\nLes morceaux d'une même boîte (B3-M1, B3-M2…) s'assemblent par enfourchement : le tenon du morceau de plus petit numéro entre dans la fourche du suivant.",
+ "consigne": "Ce fichier décrit un casier de tiroir fait de boîtes indépendantes, à imprimer en 3D une pièce à la fois.\nIl vient de l'appli « Casier de tiroir » ; tout est déjà calculé (jeu entre boîtes, découpes, tenons et fourches, arrondis intérieurs), il n'y a rien à recalculer.\nPour le construire avec SolidCraft (solidcraft-cli doit être installé ; avec le serveur MCP de SolidCraft, les mêmes commandes passent par l'outil batch) :\n1. Écrire la liste `script_solidcraft.commands` telle quelle dans un fichier script.json.\n2. Lancer `solidcraft-cli eval script.json --json-out mesures.json` et comparer chaque corps à la liste `morceaux` : même nombre de corps, un corps par `nom`, fermé, dont la boîte englobante va de (x, y, 0) à (x + largeur, y + longueur, hauteur) à 0,01 mm près, dont le volume vaut `volume_mm3` à 0,01 % près, et aucun plus grand que `tiroir.plateau` − 12 mm en X ou en Y (sinon il ne tiendrait pas sur le plateau). Si un écart apparaît, ne rien exporter et le signaler.\n3. Si tout concorde, créer un dossier impression/ à côté de ce fichier, ajouter à la fin de la liste de script.json les commandes du champ `export_3mf` de ce fichier, puis lancer `solidcraft-cli run script.json --save casier.sc` dans ce dossier : cela enregistre le modèle et écrit un fichier 3MF par morceau dans impression/.\n4. Rendre compte : nombre de morceaux, plus grand morceau, et les éventuels écarts.\nLes morceaux sont exportés à leur place dans le tiroir : le trancheur les recentre sur le plateau.\nLes morceaux d'une même boîte (B3-M1, B3-M2…) s'assemblent par enfourchement : le tenon du morceau de plus petit numéro entre dans la fourche du suivant.\nL'intérieur de chaque boîte est arrondi (congés du fond et des coins, arête du haut) ; le dessus des tenons est taillé au profil de l'arrondi du haut, pour que le bord soit continu une fois emboîté. Les corps « … outil n » que crée le script sont absorbés aussitôt par la taille et ne restent pas.",
  "tiroir": {
   "largeur": 150,
   "longueur": 120,
@@ -29,7 +29,7 @@
    "largeur": 150,
    "longueur": 120,
    "hauteur": 40,
-   "volume_mm3": 131552
+   "volume_mm3": 131674.225
   }
  ],
  "script_solidcraft": {
@@ -120,6 +120,88 @@
      "targets": [
       "B1-M1"
      ]
+    }
+   },
+   {
+    "command": "solid.fillet",
+    "params": {
+     "edges": [
+      [
+       4,
+       60,
+       3
+      ],
+      [
+       146,
+       60,
+       3
+      ],
+      [
+       75,
+       4,
+       3
+      ],
+      [
+       75,
+       116,
+       3
+      ],
+      [
+       4,
+       4,
+       21.5
+      ],
+      [
+       146,
+       4,
+       21.5
+      ],
+      [
+       4,
+       116,
+       21.5
+      ],
+      [
+       146,
+       116,
+       21.5
+      ]
+     ],
+     "radius": "2 mm",
+     "body": "B1-M1",
+     "tangent_chain": false,
+     "name": "B1-M1 congés"
+    }
+   },
+   {
+    "command": "solid.fillet",
+    "params": {
+     "edges": [
+      [
+       4,
+       60,
+       40
+      ],
+      [
+       146,
+       60,
+       40
+      ],
+      [
+       75,
+       4,
+       40
+      ],
+      [
+       75,
+       116,
+       40
+      ]
+     ],
+     "radius": "2 mm",
+     "body": "B1-M1",
+     "tangent_chain": true,
+     "name": "B1-M1 arrondi haut"
     }
    }
   ]

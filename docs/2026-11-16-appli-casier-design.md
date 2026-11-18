@@ -78,6 +78,19 @@ On clique une boîte, puis :
   signale et demande de couper la boîte.
 - Le plan montre les coupes en pointillé et le nombre de morceaux de chaque boîte.
 
+## Arrondis intérieurs (ajout du 2026-11-18)
+
+- Rayon 2 mm : congé entre le fond et les parois, congé dans les coins verticaux, arrondi de
+  l'arête du haut côté intérieur. L'arrondi du haut laisse au moins la moitié de la paroi à plat
+  (rayon au plus épaisseur / 2) ; les deux se partagent la hauteur intérieure.
+- Les arrondis sont faits avant les tenons et les fourches : ils se suivent d'un morceau à l'autre,
+  et la fourche est taillée dans le bord déjà arrondi.
+- Le dessus de chaque tenon est taillé au profil de l'arrondi du haut (outil boîte moins cylindre,
+  absorbé aussitôt), pour un bord continu une fois emboîté. Faire l'arrondi après les tenons échoue
+  dans SolidCraft (constaté sur 0.41).
+- Les volumes annoncés comptent les arrondis exactement : coins par la boule et par Pappus, et la
+  matière que tenon et fourche partagent avec l'arrondi du haut.
+
 ## Valider
 
 1. On clique « Valider ».

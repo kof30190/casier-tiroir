@@ -1,6 +1,6 @@
 {
  "version": 1,
- "consigne": "Ce fichier décrit un casier de tiroir fait de boîtes indépendantes, à imprimer en 3D une pièce à la fois.\nIl vient de l'appli « Casier de tiroir » ; tout est déjà calculé (jeu entre boîtes, découpes, tenons et fourches), il n'y a rien à recalculer.\nPour le construire avec SolidCraft (solidcraft-cli doit être installé ; avec le serveur MCP de SolidCraft, les mêmes commandes passent par l'outil batch) :\n1. Écrire la liste `script_solidcraft.commands` telle quelle dans un fichier script.json.\n2. Lancer `solidcraft-cli eval script.json --json-out mesures.json` et comparer chaque corps à la liste `morceaux` : même nombre de corps, un corps par `nom`, fermé, dont la boîte englobante va de (x, y, 0) à (x + largeur, y + longueur, hauteur) à 0,01 mm près, dont le volume vaut `volume_mm3` à 0,01 % près, et aucun plus grand que `tiroir.plateau` − 12 mm en X ou en Y (sinon il ne tiendrait pas sur le plateau). Si un écart apparaît, ne rien exporter et le signaler.\n3. Si tout concorde, créer un dossier impression/ à côté de ce fichier, ajouter à la fin de la liste de script.json les commandes du champ `export_3mf` de ce fichier, puis lancer `solidcraft-cli run script.json --save casier.sc` dans ce dossier : cela enregistre le modèle et écrit un fichier 3MF par morceau dans impression/.\n4. Rendre compte : nombre de morceaux, plus grand morceau, et les éventuels écarts.\nLes morceaux sont exportés à leur place dans le tiroir : le trancheur les recentre sur le plateau.\nLes morceaux d'une même boîte (B3-M1, B3-M2…) s'assemblent par enfourchement : le tenon du morceau de plus petit numéro entre dans la fourche du suivant.",
+ "consigne": "Ce fichier décrit un casier de tiroir fait de boîtes indépendantes, à imprimer en 3D une pièce à la fois.\nIl vient de l'appli « Casier de tiroir » ; tout est déjà calculé (jeu entre boîtes, découpes, tenons et fourches, arrondis intérieurs), il n'y a rien à recalculer.\nPour le construire avec SolidCraft (solidcraft-cli doit être installé ; avec le serveur MCP de SolidCraft, les mêmes commandes passent par l'outil batch) :\n1. Écrire la liste `script_solidcraft.commands` telle quelle dans un fichier script.json.\n2. Lancer `solidcraft-cli eval script.json --json-out mesures.json` et comparer chaque corps à la liste `morceaux` : même nombre de corps, un corps par `nom`, fermé, dont la boîte englobante va de (x, y, 0) à (x + largeur, y + longueur, hauteur) à 0,01 mm près, dont le volume vaut `volume_mm3` à 0,01 % près, et aucun plus grand que `tiroir.plateau` − 12 mm en X ou en Y (sinon il ne tiendrait pas sur le plateau). Si un écart apparaît, ne rien exporter et le signaler.\n3. Si tout concorde, créer un dossier impression/ à côté de ce fichier, ajouter à la fin de la liste de script.json les commandes du champ `export_3mf` de ce fichier, puis lancer `solidcraft-cli run script.json --save casier.sc` dans ce dossier : cela enregistre le modèle et écrit un fichier 3MF par morceau dans impression/.\n4. Rendre compte : nombre de morceaux, plus grand morceau, et les éventuels écarts.\nLes morceaux sont exportés à leur place dans le tiroir : le trancheur les recentre sur le plateau.\nLes morceaux d'une même boîte (B3-M1, B3-M2…) s'assemblent par enfourchement : le tenon du morceau de plus petit numéro entre dans la fourche du suivant.\nL'intérieur de chaque boîte est arrondi (congés du fond et des coins, arête du haut) ; le dessus des tenons est taillé au profil de l'arrondi du haut, pour que le bord soit continu une fois emboîté. Les corps « … outil n » que crée le script sont absorbés aussitôt par la taille et ne restent pas.",
  "tiroir": {
   "largeur": 325,
   "longueur": 405,
@@ -43,7 +43,7 @@
    "largeur": 79.75,
    "longueur": 145,
    "hauteur": 60,
-   "volume_mm3": 92233.875
+   "volume_mm3": 92455.858
   },
   {
    "nom": "B1-M2",
@@ -53,7 +53,7 @@
    "largeur": 79.75,
    "longueur": 144.9,
    "hauteur": 60,
-   "volume_mm3": 77867.7
+   "volume_mm3": 77969.461
   },
   {
    "nom": "B1-M3",
@@ -63,7 +63,7 @@
    "largeur": 79.75,
    "longueur": 134.9,
    "hauteur": 60,
-   "volume_mm3": 89325.075
+   "volume_mm3": 89548.141
   },
   {
    "nom": "B2-M1",
@@ -73,7 +73,7 @@
    "largeur": 79.5,
    "longueur": 145,
    "hauteur": 60,
-   "volume_mm3": 92089.95
+   "volume_mm3": 92311.839
   },
   {
    "nom": "B2-M2",
@@ -83,7 +83,7 @@
    "largeur": 79.5,
    "longueur": 144.9,
    "hauteur": 60,
-   "volume_mm3": 77766.6
+   "volume_mm3": 77868.361
   },
   {
    "nom": "B2-M3",
@@ -93,7 +93,7 @@
    "largeur": 79.5,
    "longueur": 134.9,
    "hauteur": 60,
-   "volume_mm3": 89181.15
+   "volume_mm3": 89404.122
   },
   {
    "nom": "B3-M1",
@@ -103,7 +103,7 @@
    "largeur": 164.75,
    "longueur": 145,
    "hauteur": 60,
-   "volume_mm3": 141168.375
+   "volume_mm3": 141422.28
   },
   {
    "nom": "B3-M2",
@@ -113,7 +113,7 @@
    "largeur": 164.75,
    "longueur": 144.9,
    "hauteur": 60,
-   "volume_mm3": 112241.7
+   "volume_mm3": 112343.461
   },
   {
    "nom": "B3-M3",
@@ -123,7 +123,7 @@
    "largeur": 164.75,
    "longueur": 134.9,
    "hauteur": 60,
-   "volume_mm3": 138259.575
+   "volume_mm3": 138514.563
   }
  ],
  "script_solidcraft": {
@@ -199,6 +199,68 @@
     }
    },
    {
+    "command": "solid.fillet",
+    "params": {
+     "edges": [
+      [
+       3,
+       68.95,
+       3
+      ],
+      [
+       76.75,
+       68.95,
+       3
+      ],
+      [
+       39.875,
+       3,
+       3
+      ],
+      [
+       3,
+       3,
+       31.5
+      ],
+      [
+       76.75,
+       3,
+       31.5
+      ]
+     ],
+     "radius": "2 mm",
+     "body": "B1-M1",
+     "tangent_chain": false,
+     "name": "B1-M1 congés"
+    }
+   },
+   {
+    "command": "solid.fillet",
+    "params": {
+     "edges": [
+      [
+       3,
+       68.95,
+       60
+      ],
+      [
+       76.75,
+       68.95,
+       60
+      ],
+      [
+       39.875,
+       3,
+       60
+      ]
+     ],
+     "radius": "1.5 mm",
+     "body": "B1-M1",
+     "tangent_chain": true,
+     "name": "B1-M1 arrondi haut"
+    }
+   },
+   {
     "command": "solid.box",
     "params": {
      "length": 1,
@@ -232,6 +294,96 @@
      "targets": [
       "B1-M1"
      ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 0.7,
+     "width": 11.6,
+     "height": 2.5,
+     "corner": [
+      1.5,
+      133.9,
+      58.5
+     ],
+     "operation": "new",
+     "body_name": "B1-M1 outil 1",
+     "name": "B1-M1 outil 1"
+    }
+   },
+   {
+    "command": "solid.cylinder",
+    "params": {
+     "radius": "1.5 mm",
+     "height": 13.6,
+     "base": [
+      1.5,
+      132.9,
+      58.5
+     ],
+     "axis": "Y",
+     "operation": "cut",
+     "targets": [
+      "B1-M1 outil 1"
+     ],
+     "name": "B1-M1 outil 1 profil"
+    }
+   },
+   {
+    "command": "solid.combine",
+    "params": {
+     "target": "B1-M1",
+     "tools": [
+      "B1-M1 outil 1"
+     ],
+     "operation": "cut",
+     "name": "B1-M1 taille tenon 1"
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 0.7,
+     "width": 11.6,
+     "height": 2.5,
+     "corner": [
+      77.55,
+      133.9,
+      58.5
+     ],
+     "operation": "new",
+     "body_name": "B1-M1 outil 2",
+     "name": "B1-M1 outil 2"
+    }
+   },
+   {
+    "command": "solid.cylinder",
+    "params": {
+     "radius": "1.5 mm",
+     "height": 13.6,
+     "base": [
+      78.25,
+      132.9,
+      58.5
+     ],
+     "axis": "Y",
+     "operation": "cut",
+     "targets": [
+      "B1-M1 outil 2"
+     ],
+     "name": "B1-M1 outil 2 profil"
+    }
+   },
+   {
+    "command": "solid.combine",
+    "params": {
+     "target": "B1-M1",
+     "tools": [
+      "B1-M1 outil 2"
+     ],
+     "operation": "cut",
+     "name": "B1-M1 taille tenon 2"
     }
    },
    {
@@ -287,6 +439,48 @@
     }
    },
    {
+    "command": "solid.fillet",
+    "params": {
+     "edges": [
+      [
+       3,
+       202.5,
+       3
+      ],
+      [
+       76.75,
+       202.5,
+       3
+      ]
+     ],
+     "radius": "2 mm",
+     "body": "B1-M2",
+     "tangent_chain": false,
+     "name": "B1-M2 congés"
+    }
+   },
+   {
+    "command": "solid.fillet",
+    "params": {
+     "edges": [
+      [
+       3,
+       202.5,
+       60
+      ],
+      [
+       76.75,
+       202.5,
+       60
+      ]
+     ],
+     "radius": "1.5 mm",
+     "body": "B1-M2",
+     "tangent_chain": true,
+     "name": "B1-M2 arrondi haut"
+    }
+   },
+   {
     "command": "solid.box",
     "params": {
      "length": 1,
@@ -320,6 +514,96 @@
      "targets": [
       "B1-M2"
      ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 0.7,
+     "width": 11.6,
+     "height": 2.5,
+     "corner": [
+      1.5,
+      268.9,
+      58.5
+     ],
+     "operation": "new",
+     "body_name": "B1-M2 outil 1",
+     "name": "B1-M2 outil 1"
+    }
+   },
+   {
+    "command": "solid.cylinder",
+    "params": {
+     "radius": "1.5 mm",
+     "height": 13.6,
+     "base": [
+      1.5,
+      267.9,
+      58.5
+     ],
+     "axis": "Y",
+     "operation": "cut",
+     "targets": [
+      "B1-M2 outil 1"
+     ],
+     "name": "B1-M2 outil 1 profil"
+    }
+   },
+   {
+    "command": "solid.combine",
+    "params": {
+     "target": "B1-M2",
+     "tools": [
+      "B1-M2 outil 1"
+     ],
+     "operation": "cut",
+     "name": "B1-M2 taille tenon 1"
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 0.7,
+     "width": 11.6,
+     "height": 2.5,
+     "corner": [
+      77.55,
+      268.9,
+      58.5
+     ],
+     "operation": "new",
+     "body_name": "B1-M2 outil 2",
+     "name": "B1-M2 outil 2"
+    }
+   },
+   {
+    "command": "solid.cylinder",
+    "params": {
+     "radius": "1.5 mm",
+     "height": 13.6,
+     "base": [
+      78.25,
+      267.9,
+      58.5
+     ],
+     "axis": "Y",
+     "operation": "cut",
+     "targets": [
+      "B1-M2 outil 2"
+     ],
+     "name": "B1-M2 outil 2 profil"
+    }
+   },
+   {
+    "command": "solid.combine",
+    "params": {
+     "target": "B1-M2",
+     "tools": [
+      "B1-M2 outil 2"
+     ],
+     "operation": "cut",
+     "name": "B1-M2 taille tenon 2"
     }
    },
    {
@@ -429,6 +713,68 @@
     }
    },
    {
+    "command": "solid.fillet",
+    "params": {
+     "edges": [
+      [
+       3,
+       336.05,
+       3
+      ],
+      [
+       76.75,
+       336.05,
+       3
+      ],
+      [
+       39.875,
+       402,
+       3
+      ],
+      [
+       3,
+       402,
+       31.5
+      ],
+      [
+       76.75,
+       402,
+       31.5
+      ]
+     ],
+     "radius": "2 mm",
+     "body": "B1-M3",
+     "tangent_chain": false,
+     "name": "B1-M3 congés"
+    }
+   },
+   {
+    "command": "solid.fillet",
+    "params": {
+     "edges": [
+      [
+       3,
+       336.05,
+       60
+      ],
+      [
+       76.75,
+       336.05,
+       60
+      ],
+      [
+       39.875,
+       402,
+       60
+      ]
+     ],
+     "radius": "1.5 mm",
+     "body": "B1-M3",
+     "tangent_chain": true,
+     "name": "B1-M3 arrondi haut"
+    }
+   },
+   {
     "command": "solid.box",
     "params": {
      "length": 1.4,
@@ -535,6 +881,68 @@
     }
    },
    {
+    "command": "solid.fillet",
+    "params": {
+     "edges": [
+      [
+       83.25,
+       68.95,
+       3
+      ],
+      [
+       156.75,
+       68.95,
+       3
+      ],
+      [
+       120,
+       3,
+       3
+      ],
+      [
+       83.25,
+       3,
+       31.5
+      ],
+      [
+       156.75,
+       3,
+       31.5
+      ]
+     ],
+     "radius": "2 mm",
+     "body": "B2-M1",
+     "tangent_chain": false,
+     "name": "B2-M1 congés"
+    }
+   },
+   {
+    "command": "solid.fillet",
+    "params": {
+     "edges": [
+      [
+       83.25,
+       68.95,
+       60
+      ],
+      [
+       156.75,
+       68.95,
+       60
+      ],
+      [
+       120,
+       3,
+       60
+      ]
+     ],
+     "radius": "1.5 mm",
+     "body": "B2-M1",
+     "tangent_chain": true,
+     "name": "B2-M1 arrondi haut"
+    }
+   },
+   {
     "command": "solid.box",
     "params": {
      "length": 1,
@@ -568,6 +976,96 @@
      "targets": [
       "B2-M1"
      ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 0.7,
+     "width": 11.6,
+     "height": 2.5,
+     "corner": [
+      81.75,
+      133.9,
+      58.5
+     ],
+     "operation": "new",
+     "body_name": "B2-M1 outil 1",
+     "name": "B2-M1 outil 1"
+    }
+   },
+   {
+    "command": "solid.cylinder",
+    "params": {
+     "radius": "1.5 mm",
+     "height": 13.6,
+     "base": [
+      81.75,
+      132.9,
+      58.5
+     ],
+     "axis": "Y",
+     "operation": "cut",
+     "targets": [
+      "B2-M1 outil 1"
+     ],
+     "name": "B2-M1 outil 1 profil"
+    }
+   },
+   {
+    "command": "solid.combine",
+    "params": {
+     "target": "B2-M1",
+     "tools": [
+      "B2-M1 outil 1"
+     ],
+     "operation": "cut",
+     "name": "B2-M1 taille tenon 1"
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 0.7,
+     "width": 11.6,
+     "height": 2.5,
+     "corner": [
+      157.55,
+      133.9,
+      58.5
+     ],
+     "operation": "new",
+     "body_name": "B2-M1 outil 2",
+     "name": "B2-M1 outil 2"
+    }
+   },
+   {
+    "command": "solid.cylinder",
+    "params": {
+     "radius": "1.5 mm",
+     "height": 13.6,
+     "base": [
+      158.25,
+      132.9,
+      58.5
+     ],
+     "axis": "Y",
+     "operation": "cut",
+     "targets": [
+      "B2-M1 outil 2"
+     ],
+     "name": "B2-M1 outil 2 profil"
+    }
+   },
+   {
+    "command": "solid.combine",
+    "params": {
+     "target": "B2-M1",
+     "tools": [
+      "B2-M1 outil 2"
+     ],
+     "operation": "cut",
+     "name": "B2-M1 taille tenon 2"
     }
    },
    {
@@ -623,6 +1121,48 @@
     }
    },
    {
+    "command": "solid.fillet",
+    "params": {
+     "edges": [
+      [
+       83.25,
+       202.5,
+       3
+      ],
+      [
+       156.75,
+       202.5,
+       3
+      ]
+     ],
+     "radius": "2 mm",
+     "body": "B2-M2",
+     "tangent_chain": false,
+     "name": "B2-M2 congés"
+    }
+   },
+   {
+    "command": "solid.fillet",
+    "params": {
+     "edges": [
+      [
+       83.25,
+       202.5,
+       60
+      ],
+      [
+       156.75,
+       202.5,
+       60
+      ]
+     ],
+     "radius": "1.5 mm",
+     "body": "B2-M2",
+     "tangent_chain": true,
+     "name": "B2-M2 arrondi haut"
+    }
+   },
+   {
     "command": "solid.box",
     "params": {
      "length": 1,
@@ -656,6 +1196,96 @@
      "targets": [
       "B2-M2"
      ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 0.7,
+     "width": 11.6,
+     "height": 2.5,
+     "corner": [
+      81.75,
+      268.9,
+      58.5
+     ],
+     "operation": "new",
+     "body_name": "B2-M2 outil 1",
+     "name": "B2-M2 outil 1"
+    }
+   },
+   {
+    "command": "solid.cylinder",
+    "params": {
+     "radius": "1.5 mm",
+     "height": 13.6,
+     "base": [
+      81.75,
+      267.9,
+      58.5
+     ],
+     "axis": "Y",
+     "operation": "cut",
+     "targets": [
+      "B2-M2 outil 1"
+     ],
+     "name": "B2-M2 outil 1 profil"
+    }
+   },
+   {
+    "command": "solid.combine",
+    "params": {
+     "target": "B2-M2",
+     "tools": [
+      "B2-M2 outil 1"
+     ],
+     "operation": "cut",
+     "name": "B2-M2 taille tenon 1"
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 0.7,
+     "width": 11.6,
+     "height": 2.5,
+     "corner": [
+      157.55,
+      268.9,
+      58.5
+     ],
+     "operation": "new",
+     "body_name": "B2-M2 outil 2",
+     "name": "B2-M2 outil 2"
+    }
+   },
+   {
+    "command": "solid.cylinder",
+    "params": {
+     "radius": "1.5 mm",
+     "height": 13.6,
+     "base": [
+      158.25,
+      267.9,
+      58.5
+     ],
+     "axis": "Y",
+     "operation": "cut",
+     "targets": [
+      "B2-M2 outil 2"
+     ],
+     "name": "B2-M2 outil 2 profil"
+    }
+   },
+   {
+    "command": "solid.combine",
+    "params": {
+     "target": "B2-M2",
+     "tools": [
+      "B2-M2 outil 2"
+     ],
+     "operation": "cut",
+     "name": "B2-M2 taille tenon 2"
     }
    },
    {
@@ -765,6 +1395,68 @@
     }
    },
    {
+    "command": "solid.fillet",
+    "params": {
+     "edges": [
+      [
+       83.25,
+       336.05,
+       3
+      ],
+      [
+       156.75,
+       336.05,
+       3
+      ],
+      [
+       120,
+       402,
+       3
+      ],
+      [
+       83.25,
+       402,
+       31.5
+      ],
+      [
+       156.75,
+       402,
+       31.5
+      ]
+     ],
+     "radius": "2 mm",
+     "body": "B2-M3",
+     "tangent_chain": false,
+     "name": "B2-M3 congés"
+    }
+   },
+   {
+    "command": "solid.fillet",
+    "params": {
+     "edges": [
+      [
+       83.25,
+       336.05,
+       60
+      ],
+      [
+       156.75,
+       336.05,
+       60
+      ],
+      [
+       120,
+       402,
+       60
+      ]
+     ],
+     "radius": "1.5 mm",
+     "body": "B2-M3",
+     "tangent_chain": true,
+     "name": "B2-M3 arrondi haut"
+    }
+   },
+   {
     "command": "solid.box",
     "params": {
      "length": 1.4,
@@ -871,6 +1563,68 @@
     }
    },
    {
+    "command": "solid.fillet",
+    "params": {
+     "edges": [
+      [
+       163.25,
+       68.95,
+       3
+      ],
+      [
+       322,
+       68.95,
+       3
+      ],
+      [
+       242.625,
+       3,
+       3
+      ],
+      [
+       163.25,
+       3,
+       31.5
+      ],
+      [
+       322,
+       3,
+       31.5
+      ]
+     ],
+     "radius": "2 mm",
+     "body": "B3-M1",
+     "tangent_chain": false,
+     "name": "B3-M1 congés"
+    }
+   },
+   {
+    "command": "solid.fillet",
+    "params": {
+     "edges": [
+      [
+       163.25,
+       68.95,
+       60
+      ],
+      [
+       322,
+       68.95,
+       60
+      ],
+      [
+       242.625,
+       3,
+       60
+      ]
+     ],
+     "radius": "1.5 mm",
+     "body": "B3-M1",
+     "tangent_chain": true,
+     "name": "B3-M1 arrondi haut"
+    }
+   },
+   {
     "command": "solid.box",
     "params": {
      "length": 1,
@@ -904,6 +1658,96 @@
      "targets": [
       "B3-M1"
      ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 0.7,
+     "width": 11.6,
+     "height": 2.5,
+     "corner": [
+      161.75,
+      133.9,
+      58.5
+     ],
+     "operation": "new",
+     "body_name": "B3-M1 outil 1",
+     "name": "B3-M1 outil 1"
+    }
+   },
+   {
+    "command": "solid.cylinder",
+    "params": {
+     "radius": "1.5 mm",
+     "height": 13.6,
+     "base": [
+      161.75,
+      132.9,
+      58.5
+     ],
+     "axis": "Y",
+     "operation": "cut",
+     "targets": [
+      "B3-M1 outil 1"
+     ],
+     "name": "B3-M1 outil 1 profil"
+    }
+   },
+   {
+    "command": "solid.combine",
+    "params": {
+     "target": "B3-M1",
+     "tools": [
+      "B3-M1 outil 1"
+     ],
+     "operation": "cut",
+     "name": "B3-M1 taille tenon 1"
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 0.7,
+     "width": 11.6,
+     "height": 2.5,
+     "corner": [
+      322.8,
+      133.9,
+      58.5
+     ],
+     "operation": "new",
+     "body_name": "B3-M1 outil 2",
+     "name": "B3-M1 outil 2"
+    }
+   },
+   {
+    "command": "solid.cylinder",
+    "params": {
+     "radius": "1.5 mm",
+     "height": 13.6,
+     "base": [
+      323.5,
+      132.9,
+      58.5
+     ],
+     "axis": "Y",
+     "operation": "cut",
+     "targets": [
+      "B3-M1 outil 2"
+     ],
+     "name": "B3-M1 outil 2 profil"
+    }
+   },
+   {
+    "command": "solid.combine",
+    "params": {
+     "target": "B3-M1",
+     "tools": [
+      "B3-M1 outil 2"
+     ],
+     "operation": "cut",
+     "name": "B3-M1 taille tenon 2"
     }
    },
    {
@@ -959,6 +1803,48 @@
     }
    },
    {
+    "command": "solid.fillet",
+    "params": {
+     "edges": [
+      [
+       163.25,
+       202.5,
+       3
+      ],
+      [
+       322,
+       202.5,
+       3
+      ]
+     ],
+     "radius": "2 mm",
+     "body": "B3-M2",
+     "tangent_chain": false,
+     "name": "B3-M2 congés"
+    }
+   },
+   {
+    "command": "solid.fillet",
+    "params": {
+     "edges": [
+      [
+       163.25,
+       202.5,
+       60
+      ],
+      [
+       322,
+       202.5,
+       60
+      ]
+     ],
+     "radius": "1.5 mm",
+     "body": "B3-M2",
+     "tangent_chain": true,
+     "name": "B3-M2 arrondi haut"
+    }
+   },
+   {
     "command": "solid.box",
     "params": {
      "length": 1,
@@ -992,6 +1878,96 @@
      "targets": [
       "B3-M2"
      ]
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 0.7,
+     "width": 11.6,
+     "height": 2.5,
+     "corner": [
+      161.75,
+      268.9,
+      58.5
+     ],
+     "operation": "new",
+     "body_name": "B3-M2 outil 1",
+     "name": "B3-M2 outil 1"
+    }
+   },
+   {
+    "command": "solid.cylinder",
+    "params": {
+     "radius": "1.5 mm",
+     "height": 13.6,
+     "base": [
+      161.75,
+      267.9,
+      58.5
+     ],
+     "axis": "Y",
+     "operation": "cut",
+     "targets": [
+      "B3-M2 outil 1"
+     ],
+     "name": "B3-M2 outil 1 profil"
+    }
+   },
+   {
+    "command": "solid.combine",
+    "params": {
+     "target": "B3-M2",
+     "tools": [
+      "B3-M2 outil 1"
+     ],
+     "operation": "cut",
+     "name": "B3-M2 taille tenon 1"
+    }
+   },
+   {
+    "command": "solid.box",
+    "params": {
+     "length": 0.7,
+     "width": 11.6,
+     "height": 2.5,
+     "corner": [
+      322.8,
+      268.9,
+      58.5
+     ],
+     "operation": "new",
+     "body_name": "B3-M2 outil 2",
+     "name": "B3-M2 outil 2"
+    }
+   },
+   {
+    "command": "solid.cylinder",
+    "params": {
+     "radius": "1.5 mm",
+     "height": 13.6,
+     "base": [
+      323.5,
+      267.9,
+      58.5
+     ],
+     "axis": "Y",
+     "operation": "cut",
+     "targets": [
+      "B3-M2 outil 2"
+     ],
+     "name": "B3-M2 outil 2 profil"
+    }
+   },
+   {
+    "command": "solid.combine",
+    "params": {
+     "target": "B3-M2",
+     "tools": [
+      "B3-M2 outil 2"
+     ],
+     "operation": "cut",
+     "name": "B3-M2 taille tenon 2"
     }
    },
    {
@@ -1098,6 +2074,68 @@
      "targets": [
       "B3-M3"
      ]
+    }
+   },
+   {
+    "command": "solid.fillet",
+    "params": {
+     "edges": [
+      [
+       163.25,
+       336.05,
+       3
+      ],
+      [
+       322,
+       336.05,
+       3
+      ],
+      [
+       242.625,
+       402,
+       3
+      ],
+      [
+       163.25,
+       402,
+       31.5
+      ],
+      [
+       322,
+       402,
+       31.5
+      ]
+     ],
+     "radius": "2 mm",
+     "body": "B3-M3",
+     "tangent_chain": false,
+     "name": "B3-M3 congés"
+    }
+   },
+   {
+    "command": "solid.fillet",
+    "params": {
+     "edges": [
+      [
+       163.25,
+       336.05,
+       60
+      ],
+      [
+       322,
+       336.05,
+       60
+      ],
+      [
+       242.625,
+       402,
+       60
+      ]
+     ],
+     "radius": "1.5 mm",
+     "body": "B3-M3",
+     "tangent_chain": true,
+     "name": "B3-M3 arrondi haut"
     }
    },
    {

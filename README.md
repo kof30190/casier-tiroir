@@ -13,9 +13,11 @@ Dessinez à la souris les boîtes d'un tiroir, puis faites-les construire dans S
 
 Les boîtes plus longues que le plateau sont coupées en morceaux assemblés par enfourchement (tenon d'un tiers de la paroi, 10 mm, jeu de 0,2 mm). Rien ne dépasse des parois.
 
+L'intérieur de chaque boîte est arrondi à 2 mm : congé entre le fond et les parois, congé dans les coins verticaux et arête du haut côté intérieur (moins de 2 mm si la paroi fait moins de 4 mm : il en reste toujours la moitié à plat). Le dessus des tenons est taillé au même profil, pour que le bord soit continu une fois les morceaux emboîtés.
+
 ## Développement
 
 - `npm test` : tests des règles du plan, des morceaux et du fichier (Node 20 ou plus).
-- `npm run verif` : construit cinq plans d'essai dans `solidcraft-cli` et compare chaque pièce à un calcul indépendant.
+- `npm run verif` : construit cinq plans d'essai dans `solidcraft-cli` et compare chaque pièce à un calcul indépendant, puis vérifie que les morceaux voisins ne se touchent pas.
 
 Description et plan : `docs/`.

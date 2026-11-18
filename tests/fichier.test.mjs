@@ -6,9 +6,11 @@ const TIROIR = { largeur: 325, longueur: 405, hauteur: 60, epaisseur: 4, epaisse
 const B = (x, y, largeur, longueur) => ({ x, y, largeur, longueur, auto: false });
 const CROQUIS = { version: 1, tiroir: TIROIR, boites: [B(0, 0, 100, 200), B(0, 200, 100, 205), B(100, 0, 225, 80), B(100, 80, 100, 325), B(200, 80, 125, 100), B(200, 180, 125, 225)] };
 
+const outil = (c) => c.params.operation === "new" && c.params.body_name.includes(" outil ");
+
 test("script : chaque morceau commence par un fond qui cree son corps", () => {
   const { commands } = script(CROQUIS);
-  const creations = commands.filter((c) => c.params.operation === "new");
+  const creations = commands.filter((c) => c.params.operation === "new" && !outil(c));
   assert.deepEqual(creations.map((c) => c.params.body_name), [...new Set(creations.map((c) => c.params.body_name))]);
   assert.ok(creations.every((c) => c.command === "solid.box" && c.params.height === TIROIR.epaisseur_fond));
 });
@@ -16,9 +18,31 @@ test("script : chaque morceau commence par un fond qui cree son corps", () => {
 test("script : chaque ajout ou retrait ne vise que son morceau", () => {
   const { commands } = script(CROQUIS);
   let courant = null;
+  let enCours = null;
   for (const c of commands) {
-    if (c.params.operation === "new") courant = c.params.body_name;
-    else assert.deepEqual(c.params.targets, [courant], c.params.name);
+    if (outil(c)) enCours = c.params.body_name;
+    else if (c.params.operation === "new") courant = c.params.body_name;
+    else if (c.command === "solid.fillet") assert.equal(c.params.body, courant, c.params.name);
+    else if (c.command === "solid.combine") {
+      assert.deepEqual([c.params.target, c.params.tools, c.params.operation], [courant, [enCours], "cut"], c.params.name);
+      enCours = null;
+    } else assert.deepEqual(c.params.targets, [enCours ?? courant], c.params.name);
+  }
+  assert.equal(enCours, null);
+});
+
+test("script : arrondis apres les parois, avant tenons et fourches ; chaque outil est absorbe aussitot", () => {
+  const { commands } = script(CROQUIS);
+  const n = (c) => c.params.name;
+  for (const nom of new Set(commands.filter((c) => c.params.operation === "new" && !outil(c)).map((c) => c.params.body_name))) {
+    const siens = commands.filter((c) => n(c).startsWith(nom + " ")); // toutes les fonctions d'un morceau portent son nom
+    const i = (f) => siens.findIndex(f);
+    const conges = i((c) => n(c) === `${nom} congés`);
+    const haut = i((c) => n(c) === `${nom} arrondi haut`);
+    assert.ok(conges > 0 && haut === conges + 1, nom);
+    assert.ok(siens.slice(0, conges).every((c) => c.command === "solid.box" && c.params.operation !== "cut"), nom);
+    const outils = commands.filter((c) => outil(c) && c.params.body_name.startsWith(nom + " "));
+    assert.equal(outils.length, commands.filter((c) => c.command === "solid.combine" && c.params.target === nom).length, nom);
   }
 });
 
