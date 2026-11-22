@@ -4,12 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Casier de tiroir</title>
+  <meta name="version" content="2026-11-22-2256">
   <meta name="description" content="Dessinez les boîtes de votre tiroir, l'appli prépare leur impression 3D.">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=2026-11-22-2256">
 </head>
 <body>
   <header class="barre">
-    <h1>Casier de tiroir</h1>
+    <h1>Casier de tiroir <small id="version" class="version"></small></h1>
+    <div id="nouvelle-version" class="nouvelle-version" hidden>Une nouvelle version de l'appli est en ligne. <button type="button" id="recharger">Recharger</button></div>
     <div class="actions">
       <button id="annuler" title="Annuler (Ctrl+Z)">↶ Annuler</button>
       <button id="retablir" title="Rétablir (Ctrl+Maj+Z)">↷ Rétablir</button>
@@ -68,6 +70,6 @@
     </form>
   </dialog>
 
-  <script type="module" src="app.js"></script>
+  <script type="module" src="app.js?v=2026-11-22-2256"></script>
 </body>
 </html>

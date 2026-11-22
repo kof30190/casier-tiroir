@@ -3,8 +3,8 @@
 import {
   tailleMin, coller, rogner, zoneLibre, bande, couper, redimensionner, deplacer, changerTiroir,
   remplir, controler, lireCote, contient, texteVide, LIMITES_TIROIR,
-} from "./logique.js";
-import { morceaux, fichier, lireFichier, nomFichier } from "./solidcraft.js";
+} from "./logique.js?v=2026-11-22-2256";
+import { morceaux, fichier, lireFichier, nomFichier } from "./solidcraft.js?v=2026-11-22-2256";
 
 const CLE = "casier-tiroir-plan";
 const TIROIR_DEFAUT = { largeur: 325, longueur: 405, hauteur: 60, epaisseur: 4, epaisseur_fond: 3, jeu: 0.5, plateau: 180 };
@@ -696,6 +696,32 @@ $("#cotes").addEventListener("keydown", (evt) => {
     evt.target.blur();
   }
 });
+
+// ---------- version ----------
+
+// Version de cette page (écrite par outils/nouvelle-version.mjs) ; version.json, lu sans copie du
+// navigateur, dit si une plus récente est en ligne.
+const VERSION = document.querySelector('meta[name="version"]')?.content || "";
+function texteVersion(v) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})-(\d{2})(\d{2})$/.exec(v);
+  return m ? `version du ${m[3]}/${m[2]}/${m[1]} à ${m[4]} h ${m[5]}` : "";
+}
+$("#version").textContent = texteVersion(VERSION);
+async function verifierVersion() {
+  if (!VERSION) return;
+  try {
+    const r = await fetch(`version.json?t=${Date.now()}`, { cache: "no-store" });
+    const { version } = await r.json();
+    $("#nouvelle-version").hidden = !version || version === VERSION;
+  } catch {
+    // hors ligne ou fichier absent : on garde la version chargée
+  }
+}
+$("#recharger").addEventListener("click", () => location.reload());
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") verifierVersion();
+});
+verifierVersion();
 
 // l'erreur éventuelle d'un plan mémorisé ne doit pas bloquer l'appli
 const lus = controler(plan).filter((m) => !m.startsWith("Il reste un vide"));

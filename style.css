@@ -40,6 +40,10 @@ body {
 }
 .barre { grid-area: barre; display: flex; align-items: center; gap: 16px; padding: 10px 16px; border-bottom: 1px solid var(--ligne); background: var(--surface); }
 .barre h1 { font-size: 18px; margin: 0; flex: 1; }
+.version { font-size: 12px; font-weight: 400; opacity: 0.6; margin-left: 6px; white-space: nowrap; }
+.nouvelle-version { display: flex; align-items: center; gap: 8px; padding: 4px 10px; border-radius: 8px; background: var(--accent); color: var(--accent-texte); font-size: 14px; }
+.nouvelle-version button { background: var(--surface); color: var(--texte); border-color: var(--surface); }
+.nouvelle-version[hidden] { display: none; }
 .actions { display: flex; gap: 8px; flex-wrap: wrap; }
 button, .bouton {
   font: inherit; color: var(--texte); background: var(--surface); border: 1px solid var(--ligne);

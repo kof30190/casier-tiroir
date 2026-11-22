@@ -5,7 +5,7 @@
 // arrondi de l'arête du haut côté intérieur. Les arrondis sont faits avant les tenons et les fourches, pour
 // qu'ils se suivent d'un morceau à l'autre.
 
-import { controler, lireCote, LIMITES_TIROIR } from "./logique.js";
+import { controler, lireCote, LIMITES_TIROIR } from "./logique.js?v=2026-11-22-2256";
 
 export const TENON = { longueur: 10, jeu: 0.2 };
 export const MARGE_PLATEAU = 12;

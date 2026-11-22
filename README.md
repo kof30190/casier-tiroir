@@ -21,3 +21,10 @@ L'intérieur de chaque boîte est arrondi à 2 mm : congé entre le fond et les 
 - `npm run verif` : construit cinq plans d'essai dans `solidcraft-cli` et compare chaque pièce à un calcul indépendant, puis vérifie que les morceaux voisins ne se touchent pas.
 
 Description et plan : `docs/`.
+
+## Mettre en ligne une nouvelle version
+
+Avant chaque envoi sur GitHub : `node outils/nouvelle-version.mjs`. Le numéro de version (date et heure de Paris)
+est écrit dans `index.html`, dans les liens vers les fichiers (`?v=…`) et dans `version.json`. Les navigateurs
+chargent alors tout de suite les nouveaux fichiers, l'appli affiche sa version à côté du titre, et une page restée
+ouverte propose « Recharger » quand une version plus récente est en ligne.
