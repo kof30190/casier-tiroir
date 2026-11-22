@@ -1,7 +1,7 @@
 // Interface : dessin du plan, souris, panneaux, fichier. Toute la géométrie vient de logique.js et
 // solidcraft.js ; ce fichier ne fait que les appeler et afficher le résultat.
 import {
-  tailleMin, coller, rogner, zoneLibre, bande, couper, redimensionner, changerTiroir,
+  tailleMin, coller, rogner, zoneLibre, bande, couper, redimensionner, deplacer, changerTiroir,
   remplir, controler, lireCote, contient, texteVide, LIMITES_TIROIR,
 } from "./logique.js";
 import { morceaux, fichier, lireFichier, nomFichier } from "./solidcraft.js";
@@ -22,7 +22,7 @@ let futur = [];
 let selection = null; // {type: "boite", index} | {type: "zone", rect}
 let apercu = null; // boîtes ajoutées par le remplissage, en attente de confirmation
 let etroits = [];
-let geste = null; // tracé ou redimension en cours
+let geste = null; // tracé, redimension ou déplacement en cours
 let vue = null; // viewBox courante {x, y, w, h}
 
 // ---------- état, mémoire, annuler ----------
@@ -144,9 +144,12 @@ function dessiner() {
   for (let x = pas; x < t.largeur; x += pas) el("line", { x1: x, y1: 0, x2: x, y2: t.longueur, class: "grille-forte" }, grille);
   for (let y = pas; y < t.longueur; y += pas) el("line", { x1: 0, y1: versEcranY(y), x2: t.largeur, y2: versEcranY(y), class: "grille-forte" }, grille);
 
-  const { morceaux: pieces, alertes } = morceaux({ ...plan, boites: [...plan.boites, ...(apercu || [])] });
+  // pendant un déplacement, on montre la boîte à sa place provisoire
+  const vues = geste?.type === "deplacer" && geste.bouge ? geste.boites : plan.boites;
+  svg.classList.toggle("deplace", geste?.type === "deplacer" && geste.bouge);
+  const { morceaux: pieces, alertes } = morceaux({ ...plan, boites: [...vues, ...(apercu || [])] });
   const niveau = (n) => alertes.find((a) => a.boite === n)?.niveau;
-  const toutes = [...plan.boites.map((b) => ({ b, apercu: false })), ...(apercu || []).map((b) => ({ b, apercu: true }))];
+  const toutes = [...vues.map((b) => ({ b, apercu: false })), ...(apercu || []).map((b) => ({ b, apercu: true }))];
   toutes.forEach(({ b, apercu: ap }, k) => {
     const n = k + 1;
     const classes = ["boite"];
@@ -185,7 +188,7 @@ function dessiner() {
       geste.rect.y + geste.rect.longueur / 2, Math.max(Math.min(Math.min(geste.rect.largeur, geste.rect.longueur) / 5, 14), 4), "cote", svg);
   }
   if (selection?.type === "boite") {
-    const b = geste?.type === "bord" && geste.apercu ? geste.apercu : plan.boites[selection.index];
+    const b = geste?.type === "bord" && geste.apercu ? geste.apercu : vues[selection.index];
     if (b) poignees(b);
   }
 }
@@ -385,24 +388,21 @@ function ajouterBoite(r, tol) {
 }
 
 function supprimer() {
-  if (selection?.type !== "boite") {
-    const libres = remplir(plan.boites, plan.tiroir).ajoutees;
-    if (!libres.length) return;
-    const h = document.createElement("h3");
-    h.textContent = "Ajouter des boîtes";
-    zone.append(h,
-      Object.assign(document.createElement("p"), { textContent: "Glissez sur le plan, ou choisissez une zone libre pour y poser une colonne ou une rangée." }),
-      ligne(bouton("Choisir la plus grande zone libre", () => {
-        const plus = libres.reduce((a, b) => (b.largeur * b.longueur > a.largeur * a.longueur ? b : a));
-        selection = { type: "zone", rect: zoneLibre({ x: plus.x + 0.5, y: plus.y + 0.5 }, plan.boites, plan.tiroir) };
-        tout();
-        $("#outil select")?.focus();
-      })));
-    return;
-  }
+  if (selection?.type !== "boite") return;
   const k = selection.index;
   selection = null;
   changer({ ...plan, boites: plan.boites.filter((_, i) => i !== k) });
+}
+
+// Enregistre la nouvelle place d'une boîte (annulable) ; rien si elle n'a pas bougé.
+function poserDeplacement(k, boites) {
+  const avant = plan.boites[k];
+  const apres = boites[k];
+  if (apres.x === avant.x && apres.y === avant.y) return false;
+  selection = { type: "boite", index: k };
+  changer({ ...plan, boites: boites.map((b, i) => (i === k ? { ...b, auto: false } : b)) });
+  message("");
+  return true;
 }
 
 function couperAuClic(k, p, autreSens) {
@@ -528,8 +528,12 @@ svg.addEventListener("pointerdown", (evt) => {
   if (evt.button !== 0) return;
   const p = versMm(evt);
   const bord = evt.target.dataset?.bord;
+  const k = boiteSous(p);
   if (bord && selection?.type === "boite") {
     geste = { type: "bord", bord, index: selection.index };
+  } else if (k >= 0) {
+    const b = plan.boites[k];
+    geste = { type: "deplacer", index: k, depart: p, origine: { x: b.x, y: b.y }, boites: plan.boites, ecran: [evt.clientX, evt.clientY], bouge: false };
   } else {
     geste = { type: "trace", depart: p, ecran: [evt.clientX, evt.clientY], bouge: false };
   }
@@ -552,6 +556,19 @@ window.addEventListener("pointermove", (evt) => {
     return;
   }
   if (Math.hypot(evt.clientX - geste.ecran[0], evt.clientY - geste.ecran[1]) < 4 && !geste.bouge) return;
+  if (geste.type === "deplacer") {
+    if (!geste.bouge) {
+      selection = { type: "boite", index: geste.index };
+      apercu = null;
+      etroits = [];
+    }
+    geste.bouge = true;
+    // on part toujours de la dernière place valide : la boîte bute sans traverser
+    const cible = { x: geste.origine.x + p.x - geste.depart.x, y: geste.origine.y + p.y - geste.depart.y };
+    geste.boites = deplacer(geste.boites, geste.index, cible, plan.tiroir);
+    dessiner();
+    return;
+  }
   geste.bouge = true;
   const brut = {
     x: Math.min(geste.depart.x, p.x), y: Math.min(geste.depart.y, p.y),
@@ -577,6 +594,10 @@ window.addEventListener("pointerup", (evt) => {
       if (g.resultat?.erreur) message(g.resultat.erreur, "erreur");
       tout();
     }
+    return;
+  }
+  if (g.type === "deplacer" && g.bouge) {
+    if (!poserDeplacement(g.index, g.boites)) tout();
     return;
   }
   if (g.bouge) {
@@ -637,6 +658,15 @@ document.addEventListener("keydown", (evt) => {
     else annuler();
   } else if ((evt.key === "Delete" || evt.key === "Backspace") && !saisie) {
     supprimer();
+  } else if (evt.key.startsWith("Arrow") && !saisie && !cmd && selection?.type === "boite" && plan.boites[selection.index]) {
+    evt.preventDefault();
+    const pas = evt.shiftKey ? 10 : 1;
+    const dx = { ArrowLeft: -pas, ArrowRight: pas }[evt.key] || 0;
+    const dy = { ArrowDown: -pas, ArrowUp: pas }[evt.key] || 0; // l'avant du tiroir est en bas
+    const k = selection.index;
+    const b = plan.boites[k];
+    const boites = deplacer(plan.boites, k, { x: b.x + dx, y: b.y + dy }, plan.tiroir, 0);
+    if (!poserDeplacement(k, boites)) message("La boîte est en butée.", "info");
   } else if (evt.key === "Escape") {
     selection = null;
     apercu = null;

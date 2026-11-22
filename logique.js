@@ -179,6 +179,64 @@ export function redimensionner(boites, index, bord, valeur, tiroir, tol = COLLAG
   return boites.map((o, k) => (k === index ? { ...o, ...r } : o));
 }
 
+// Déplace une boîte (taille inchangée) vers le coin avant gauche `cible`, depuis sa place actuelle.
+// Butée sur les bords du tiroir ; contre une voisine, la boîte s'arrête à son bord et glisse le long
+// (on avance en X puis en Y, ou en Y puis en X, et on garde la place la plus proche de la cible) :
+// elle ne traverse jamais une boîte. Les bords se collent aux bords proches, à `tol` mm près.
+export function deplacer(boites, index, cible, tiroir, tol = COLLAGE_MM) {
+  const b = boites[index];
+  const autres = boites.filter((_, k) => k !== index);
+  const w = b.largeur;
+  const h = b.longueur;
+  const borne = (v, maxi) => Math.min(Math.max(v, 0), Math.max(maxi, 0));
+  const aimanterAxe = (v, taille, axe) => {
+    const candidats = bords(autres, tiroir, axe);
+    if (candidats.includes(v) || candidats.includes(v + taille)) return v; // déjà calée contre un bord
+    const debut = aimanter(v, candidats, tol);
+    const fin = aimanter(v + taille, candidats, tol) - taille;
+    // seuls les bords réellement collés comptent ; si les deux le sont, le plus proche l'emporte
+    const colles = [debut, fin].filter((c) => c !== v);
+    if (!colles.length) return v;
+    return colles.reduce((a, c) => (Math.abs(c - v) < Math.abs(a - v) ? c : a));
+  };
+  let tx = borne(Math.round(cible.x), tiroir.largeur - w);
+  let ty = borne(Math.round(cible.y), tiroir.longueur - h);
+  tx = borne(aimanterAxe(tx, w, "x"), tiroir.largeur - w);
+  ty = borne(aimanterAxe(ty, h, "y"), tiroir.longueur - h);
+
+  // avance le long d'un axe en s'arrêtant à la première voisine rencontrée
+  const avancerX = (x, y, vers) => {
+    let fin = vers;
+    for (const o of autres) {
+      if (!(o.y < y + h && y < haut(o))) continue;
+      if (vers > x && o.x >= x + w) fin = Math.min(fin, o.x - w);
+      if (vers < x && droite(o) <= x) fin = Math.max(fin, droite(o));
+    }
+    return fin;
+  };
+  const avancerY = (x, y, vers) => {
+    let fin = vers;
+    for (const o of autres) {
+      if (!(o.x < x + w && x < droite(o))) continue;
+      if (vers > y && o.y >= y + h) fin = Math.min(fin, o.y - h);
+      if (vers < y && haut(o) <= y) fin = Math.max(fin, haut(o));
+    }
+    return fin;
+  };
+  const xd = avancerX(b.x, b.y, tx);
+  const parX = { x: xd, y: avancerY(xd, b.y, ty) };
+  const yd = avancerY(b.x, b.y, ty);
+  const parY = { x: avancerX(b.x, yd, tx), y: yd };
+  const ecart = (p) => Math.hypot(p.x - tx, p.y - ty);
+  const choix = [parX, parY].sort((p, q) => ecart(p) - ecart(q));
+  for (const p of choix) {
+    const r = { x: p.x, y: p.y, largeur: w, longueur: h };
+    const dedans = r.x >= 0 && r.y >= 0 && droite(r) <= tiroir.largeur && haut(r) <= tiroir.longueur;
+    if (dedans && !autres.some((o) => seChevauchent(o, r))) return boites.map((o, k) => (k === index ? { ...o, x: r.x, y: r.y } : o));
+  }
+  return boites;
+}
+
 // Applique de nouvelles cotes de tiroir : les boîtes collées au bord droit ou haut le suivent,
 // celles qui dépassent sont rognées, celles qui sortent ou deviennent trop petites sont retirées.
 export function changerTiroir(plan, nouveau) {

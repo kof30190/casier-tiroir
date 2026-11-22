@@ -136,3 +136,60 @@ test("changerTiroir : agrandir le tiroir allonge les boites collees au bord haut
   const { plan: p } = changerTiroir(plan, { ...TIROIR, longueur: 450 });
   assert.deepEqual(p.boites[1], B(0, 200, 325, 250));
 });
+
+// ---------- deplacer ----------
+import { deplacer } from "../logique.js";
+
+const pos = (boites, k) => ({ x: boites[k].x, y: boites[k].y, largeur: boites[k].largeur, longueur: boites[k].longueur });
+
+test("deplacer : une boite seule suit la cible, taille gardee", () => {
+  const r = deplacer([B(50, 50, 100, 80)], 0, { x: 120, y: 200 }, TIROIR);
+  assert.deepEqual(pos(r, 0), { x: 120, y: 200, largeur: 100, longueur: 80 });
+});
+
+test("deplacer : butee sur les quatre bords du tiroir", () => {
+  const b = [B(50, 50, 100, 80)];
+  assert.deepEqual(pos(deplacer(b, 0, { x: -40, y: -30 }, TIROIR), 0), { x: 0, y: 0, largeur: 100, longueur: 80 });
+  assert.deepEqual(pos(deplacer(b, 0, { x: 900, y: 900 }, TIROIR), 0), { x: 225, y: 325, largeur: 100, longueur: 80 });
+});
+
+test("deplacer : s'arrete contre une voisine sans la mordre", () => {
+  const r = deplacer([B(0, 0, 100, 100), B(200, 0, 100, 100)], 0, { x: 150, y: 0 }, TIROIR);
+  assert.equal(r[0].x, 100);
+  assert.equal(r[0].y, 0);
+});
+
+test("deplacer : ne traverse pas une voisine meme si la cible est libre derriere", () => {
+  const r = deplacer([B(0, 0, 50, 100), B(100, 0, 50, 100)], 0, { x: 250, y: 0 }, TIROIR);
+  assert.equal(r[0].x, 50);
+});
+
+test("deplacer : glisse le long d'une voisine", () => {
+  // voisine a droite (x 100-200, y 0-150) ; on vise a droite et vers le fond :
+  // la boite ne passe pas a droite, mais monte jusqu'a la cible le long de la voisine
+  const r = deplacer([B(0, 0, 100, 100), B(100, 0, 100, 150)], 0, { x: 60, y: 200 }, TIROIR);
+  assert.deepEqual(pos(r, 0), { x: 60, y: 200, largeur: 100, longueur: 100 });
+  const r2 = deplacer([B(0, 0, 100, 100), B(100, 0, 100, 150)], 0, { x: 60, y: 30 }, TIROIR);
+  assert.deepEqual(pos(r2, 0), { x: 0, y: 30, largeur: 100, longueur: 100 });
+});
+
+test("deplacer : se colle au bord d'une voisine a 3 mm pres", () => {
+  const r = deplacer([B(0, 200, 100, 100), B(200, 0, 100, 100)], 0, { x: 97, y: 200 }, TIROIR);
+  assert.equal(r[0].x, 100);
+});
+
+test("deplacer : au clavier (tol 0) un pas de 1 mm reste exact", () => {
+  const r = deplacer([B(0, 200, 100, 100), B(200, 0, 100, 100)], 0, { x: 1, y: 200 }, TIROIR, 0);
+  assert.equal(r[0].x, 1);
+});
+
+test("deplacer : boite coincee, rien ne bouge", () => {
+  const b = [B(0, 0, 100, 405), B(100, 0, 100, 405), B(200, 0, 125, 405)];
+  assert.deepEqual(deplacer(b, 1, { x: 150, y: 50 }, TIROIR), b);
+});
+
+test("deplacer : calee contre le fond du tiroir, elle ne se decolle pas vers une voisine proche", () => {
+  // la boite touche le fond (y 305 + 100 = 405) ; une voisine commence a y = 300 : elle reste a 305
+  const r = deplacer([B(225, 100, 100, 100), B(0, 300, 100, 100)], 0, { x: 900, y: 900 }, TIROIR);
+  assert.deepEqual(pos(r, 0), { x: 225, y: 305, largeur: 100, longueur: 100 });
+});

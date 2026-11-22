@@ -81,7 +81,8 @@ input.invalide { border-color: var(--alerte); }
 .grille-fine { stroke: var(--grille-fine); stroke-width: 0.15; }
 .grille-forte { stroke: var(--grille); stroke-width: 0.4; }
 /* contours en pixels d'écran (non-scaling-stroke) : nets à tous les zooms */
-.boite { fill: var(--boite); stroke: var(--boite-bord); stroke-width: 2.5px; vector-effect: non-scaling-stroke; stroke-linejoin: round; cursor: pointer; }
+.boite { fill: var(--boite); stroke: var(--boite-bord); stroke-width: 2.5px; vector-effect: non-scaling-stroke; stroke-linejoin: round; cursor: grab; }
+#plan.deplace, #plan.deplace * { cursor: grabbing; }
 .boite.auto { fill: var(--auto); stroke: var(--auto-bord); }
 .boite.apercu { fill: var(--auto); stroke: var(--auto-bord); stroke-dasharray: 3 2; opacity: 0.85; }
 .boite.choisie { stroke: var(--accent); stroke-width: 3.5px; }
